@@ -117,13 +117,14 @@ def show():
         "Employment Statistics", "Assistance", "Jobs Generated"
     ]
 
-    # Custom sidebar using Streamlit components with enhanced styling
+    # Modern Professional Sidebar with enhanced styling
     st.markdown("""
         <style>
-        /* Enhanced sidebar styling */
+        /* Modern Sidebar Design */
         .stSidebar {
-            background-color: #f8f9fa !important;
-            border-right: 1px solid #dee2e6 !important;
+            background: linear-gradient(180deg, #1e3a8a 0%, #172087 100%) !important;
+            border-right: none !important;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1) !important;
         }
         
         .stSidebar .sidebar-content {
@@ -132,71 +133,154 @@ def show():
         
         /* Custom header for sidebar */
         .sidebar-header {
-            background-color: #172087;
+            background: rgba(255,255,255,0.1);
             color: white;
-            padding: 20px;
+            padding: 25px 20px;
             margin: 0;
             text-align: center;
-            font-weight: 600;
-            font-size: 18px;
+            font-weight: 700;
+            font-size: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
         }
         
-        /* Menu item styling */
-        .sidebar-menu-item {
-            padding: 15px 20px;
-            border-bottom: 1px solid #e9ecef;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-            font-size: 16px;
-        }
-        
-        .sidebar-menu-item:hover {
-            background-color: #e7f1ff;
+        .sidebar-logo {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 50%;
+            margin: 0 auto 15px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
             color: #172087;
         }
         
-        .sidebar-menu-item.active {
-            background-color: #172087;
+        /* Navigation Menu Styling */
+        .nav-menu {
+            padding: 20px 0;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            margin: 2px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: rgba(255,255,255,0.8);
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            border-left: 3px solid transparent;
+        }
+        
+        .nav-item:hover {
+            background: rgba(255,255,255,0.15);
             color: white;
+            border-left: 3px solid #60a5fa;
+            transform: translateX(5px);
         }
         
-        /* Section styling */
-        .sidebar-section {
-            padding: 20px;
-            border-bottom: 1px solid #dee2e6;
-        }
-        
-        .sidebar-section h4 {
-            margin: 0 0 15px 0;
-            font-size: 16px;
+        .nav-item.active {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border-left: 3px solid #60a5fa;
             font-weight: 600;
-            color: #333;
         }
         
-        /* Button styling */
-        .sidebar-button {
+        .nav-icon {
+            margin-right: 12px;
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        /* Section dividers */
+        .nav-section-title {
+            color: rgba(255,255,255,0.6);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 20px 20px 10px 20px;
+            margin-top: 10px;
+        }
+        
+        .nav-divider {
+            height: 1px;
+            background: rgba(255,255,255,0.1);
+            margin: 15px 20px;
+        }
+        
+        /* Data Management Section */
+        .data-section {
+            background: rgba(255,255,255,0.05);
+            margin: 20px 10px;
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .data-section h4 {
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            margin: 0 0 10px 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .data-stats {
+            color: rgba(255,255,255,0.8);
+            font-size: 13px;
+            margin-bottom: 15px;
+        }
+        
+        /* Modern Buttons */
+        .modern-btn {
             width: 100%;
             padding: 10px 15px;
-            background-color: #dc3545;
-            color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 14px;
-            margin-bottom: 10px;
-            transition: background-color 0.2s ease;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
-        .sidebar-button:hover {
-            background-color: #c82333;
+        .btn-danger {
+            background: #ef4444;
+            color: white;
         }
         
-        .sidebar-button.logout {
-            background-color: #6c757d;
+        .btn-danger:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
         }
         
-        .sidebar-button.logout:hover {
-            background-color: #5a6268;
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #4b5563;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+        }
+        
+        /* Hide default radio button styling */
+        .stRadio > div {
+            display: none !important;
         }
         
         /* Hide default sidebar elements */
@@ -208,65 +292,169 @@ def show():
         [data-testid="stSidebar"] .menu-title svg {
             display: none !important;
         }
-        </style>
-    """, unsafe_allow_html=True)
+        
+        /* User info section */
+        .user-info {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            background: #60a5fa;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .user-name {
+            color: white;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        
+        .user-role {
+            color: rgba(255,255,255,0.7);
+            font-size: 11px;
+            text-transform: capitalize;
+                 }
+         </style>
+     """, unsafe_allow_html=True)
     
-    # Use Streamlit's native sidebar with custom content
+    # Modern Professional Sidebar Content
     with st.sidebar:
-        # Custom header
-        st.markdown('<div class="sidebar-header">CPMS Dashboard</div>', unsafe_allow_html=True)
+        # Custom header with logo
+        st.markdown('''
+            <div class="sidebar-header">
+                <div class="sidebar-logo">📊</div>
+                CPMS Dashboard
+            </div>
+        ''', unsafe_allow_html=True)
         
-        # Menu items
-        menu_options = [
-            "Dashboard", "Client", "Business Contact Information", "Business Registrations",
-            "Business Owner", "Business Profile", "Business Financial Structure", "Market Domestic",
-            "Market Export", "Market Import", "Product_Service Lines", "Employment Statistics",
-            "Assistance", "Jobs Generated"
-        ]
+        # Define menu items with icons and categories
+        menu_config = {
+            "OVERVIEW": [
+                {"name": "Dashboard", "icon": "🏠"},
+                {"name": "Client", "icon": "👥"}
+            ],
+            "BUSINESS MANAGEMENT": [
+                {"name": "Business Contact Information", "icon": "📞"},
+                {"name": "Business Registrations", "icon": "📋"},
+                {"name": "Business Owner", "icon": "👤"},
+                {"name": "Business Profile", "icon": "🏢"},
+                {"name": "Business Financial Structure", "icon": "💰"}
+            ],
+            "MARKET OPERATIONS": [
+                {"name": "Market Domestic", "icon": "🏪"},
+                {"name": "Market Export", "icon": "🌍"},
+                {"name": "Market Import", "icon": "📦"},
+                {"name": "Product_Service Lines", "icon": "🛍️"}
+            ],
+            "ANALYTICS & SUPPORT": [
+                {"name": "Employment Statistics", "icon": "📊"},
+                {"name": "Assistance", "icon": "🤝"},
+                {"name": "Jobs Generated", "icon": "💼"}
+            ]
+        }
         
-        # Create menu using radio buttons for better control
+        # Create navigation menu with modern design
+        st.markdown('<div class="nav-menu">', unsafe_allow_html=True)
+        
+        # Hidden radio button for state management
+        all_options = []
+        for category, items in menu_config.items():
+            all_options.extend([item["name"] for item in items])
+        
         selected = st.radio(
             "Navigation",
-            menu_options,
+            all_options,
             index=0,
             label_visibility="collapsed",
             key="sidebar_navigation"
         )
         
-        # Data Management Section
-        st.markdown("---")
-        st.markdown("### Data Management")
+        # Generate the visual menu
+        nav_html = ""
+        for category, items in menu_config.items():
+            nav_html += f'<div class="nav-section-title">{category}</div>'
+            
+            for item in items:
+                active_class = "active" if item["name"] == selected else ""
+                nav_html += f'''
+                    <div class="nav-item {active_class}" onclick="selectMenuItem('{item["name"]}')">
+                        <span class="nav-icon">{item["icon"]}</span>
+                        {item["name"]}
+                    </div>
+                '''
+            
+            nav_html += '<div class="nav-divider"></div>'
         
-        # Show active sheets count
+        st.markdown(nav_html, unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+        # Data Management Section with modern styling
         data_dir = "data"
         excel_file = os.path.join(data_dir, "cpms_data.xlsx")
         if os.path.exists(excel_file):
             try:
                 excel_data = pd.read_excel(excel_file, sheet_name=None)
                 active_sheets = len([sheet for sheet in excel_data.keys() if sheet != 'Sheet1'])
-                st.markdown(f"**Active Sheets:** {active_sheets}")
+                sheet_text = f"{active_sheets} Active Sheets"
             except:
-                st.markdown("**Active Sheets:** 0")
+                sheet_text = "0 Active Sheets"
         else:
-            st.markdown("**Active Sheets:** 0")
+            sheet_text = "0 Active Sheets"
         
-        # Clear All Data button
-        if st.button("Clear All Data", key="clear_data_btn"):
-            if os.path.exists(excel_file):
-                os.remove(excel_file)
-            st.success("All data cleared!")
-            st.rerun()
+        st.markdown(f'''
+            <div class="data-section">
+                <h4>📁 Data Management</h4>
+                <div class="data-stats">{sheet_text}</div>
+            </div>
+        ''', unsafe_allow_html=True)
         
-        st.markdown("---")
+        # Modern action buttons
+        col1, col2 = st.columns(2)
         
-        # Logout button
-        if st.button("Logout", key="logout_btn"):
-            st.session_state["authenticated"] = False
-            st.session_state["auth_cookie"] = None
-            session_file = "session.json"
-            if os.path.exists(session_file):
-                os.remove(session_file)
-            st.rerun()
+        with col1:
+            if st.button("🗑️", key="clear_data_btn", help="Clear All Data"):
+                if os.path.exists(excel_file):
+                    os.remove(excel_file)
+                st.success("All data cleared!")
+                st.rerun()
+        
+        with col2:
+            if st.button("🚪", key="logout_btn", help="Logout"):
+                st.session_state["authenticated"] = False
+                st.session_state["auth_cookie"] = None
+                session_file = "session.json"
+                if os.path.exists(session_file):
+                    os.remove(session_file)
+                st.rerun()
+        
+        # User info section
+        auth_cookie = st.session_state.get("auth_cookie", {})
+        user_name = auth_cookie.get("first_name", "User")
+        user_role = auth_cookie.get("role", "user")
+        user_initial = user_name[0].upper() if user_name else "U"
+        
+        st.markdown(f'''
+            <div class="user-info">
+                <div class="user-avatar">{user_initial}</div>
+                <div class="user-name">{user_name} {auth_cookie.get("last_name", "")}</div>
+                <div class="user-role">{user_role}</div>
+            </div>
+        ''', unsafe_allow_html=True)
     
 
 
