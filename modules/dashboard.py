@@ -117,7 +117,7 @@ def show():
         "Employment Statistics", "Assistance", "Jobs Generated"
     ]
 
-    # Modern Professional Sidebar with enhanced styling
+      # Modern Professional Sidebar with enhanced styling
     st.markdown("""
         <style>
         /* Modern Sidebar Design */
