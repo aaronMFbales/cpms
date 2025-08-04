@@ -332,109 +332,97 @@ def show():
          </style>
      """, unsafe_allow_html=True)
     
-    # Modern Professional Sidebar Content
+    # Modern Professional Sidebar Content using Streamlit native components
     with st.sidebar:
         # Custom header with logo
-        st.markdown('''
-            <div class="sidebar-header">
-                <div class="sidebar-logo">📊</div>
-                CPMS Dashboard
-            </div>
-        ''', unsafe_allow_html=True)
+        st.markdown('<div class="sidebar-header"><div class="sidebar-logo">📊</div>CPMS Dashboard</div>', unsafe_allow_html=True)
         
         # Define menu items with icons and categories
         menu_config = {
-            "OVERVIEW": [
-                {"name": "Dashboard", "icon": "🏠"},
-                {"name": "Client", "icon": "👥"}
+            "📋 OVERVIEW": [
+                "🏠 Dashboard",
+                "👥 Client"
             ],
-            "BUSINESS MANAGEMENT": [
-                {"name": "Business Contact Information", "icon": "📞"},
-                {"name": "Business Registrations", "icon": "📋"},
-                {"name": "Business Owner", "icon": "👤"},
-                {"name": "Business Profile", "icon": "🏢"},
-                {"name": "Business Financial Structure", "icon": "💰"}
+            "🏢 BUSINESS MANAGEMENT": [
+                "📞 Business Contact Information",
+                "📋 Business Registrations", 
+                "👤 Business Owner",
+                "🏢 Business Profile",
+                "💰 Business Financial Structure"
             ],
-            "MARKET OPERATIONS": [
-                {"name": "Market Domestic", "icon": "🏪"},
-                {"name": "Market Export", "icon": "🌍"},
-                {"name": "Market Import", "icon": "📦"},
-                {"name": "Product_Service Lines", "icon": "🛍️"}
+            "🌍 MARKET OPERATIONS": [
+                "🏪 Market Domestic",
+                "🌍 Market Export", 
+                "📦 Market Import",
+                "🛍️ Product_Service Lines"
             ],
-            "ANALYTICS & SUPPORT": [
-                {"name": "Employment Statistics", "icon": "📊"},
-                {"name": "Assistance", "icon": "🤝"},
-                {"name": "Jobs Generated", "icon": "💼"}
+            "📊 ANALYTICS & SUPPORT": [
+                "📊 Employment Statistics",
+                "🤝 Assistance",
+                "💼 Jobs Generated"
             ]
         }
         
-        # Create navigation menu with modern design
-        st.markdown('<div class="nav-menu">', unsafe_allow_html=True)
-        
-        # Hidden radio button for state management
+        # Create all options list for radio button
         all_options = []
         for category, items in menu_config.items():
-            all_options.extend([item["name"] for item in items])
+            for item in items:
+                # Remove emoji and icon for the actual value
+                clean_name = item.split(' ', 1)[1] if ' ' in item else item
+                all_options.append(clean_name)
         
-        selected = st.radio(
-            "Navigation",
-            all_options,
-            index=0,
-            label_visibility="collapsed",
-            key="sidebar_navigation"
-        )
+        # Create the navigation using selectbox for better control
+        st.markdown("### 🧭 Navigation")
         
-        # Generate the visual menu
-        nav_html = ""
+        # Create a more visual menu using columns and buttons
+        selected = None
+        if "selected_nav_item" not in st.session_state:
+            st.session_state.selected_nav_item = "Dashboard"
+        
         for category, items in menu_config.items():
-            nav_html += f'<div class="nav-section-title">{category}</div>'
+            st.markdown(f"**{category}**")
             
             for item in items:
-                active_class = "active" if item["name"] == selected else ""
-                nav_html += f'''
-                    <div class="nav-item {active_class}" onclick="selectMenuItem('{item["name"]}')">
-                        <span class="nav-icon">{item["icon"]}</span>
-                        {item["name"]}
-                    </div>
-                '''
+                clean_name = item.split(' ', 1)[1] if ' ' in item else item
+                
+                # Create a visual button-like selectbox option
+                if st.button(f"{item}", key=f"nav_{clean_name}", use_container_width=True):
+                    st.session_state.selected_nav_item = clean_name
+                    st.rerun()
             
-            nav_html += '<div class="nav-divider"></div>'
+            st.markdown("---")
         
-        st.markdown(nav_html, unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        selected = st.session_state.selected_nav_item
         
-        # Data Management Section with modern styling
+        # Data Management Section
+        st.markdown("### 📁 Data Management")
+        
         data_dir = "data"
         excel_file = os.path.join(data_dir, "cpms_data.xlsx")
         if os.path.exists(excel_file):
             try:
                 excel_data = pd.read_excel(excel_file, sheet_name=None)
                 active_sheets = len([sheet for sheet in excel_data.keys() if sheet != 'Sheet1'])
-                sheet_text = f"{active_sheets} Active Sheets"
+                st.info(f"📊 Active Sheets: **{active_sheets}**")
             except:
-                sheet_text = "0 Active Sheets"
+                st.info("📊 Active Sheets: **0**")
         else:
-            sheet_text = "0 Active Sheets"
+            st.info("📊 Active Sheets: **0**")
         
-        st.markdown(f'''
-            <div class="data-section">
-                <h4>📁 Data Management</h4>
-                <div class="data-stats">{sheet_text}</div>
-            </div>
-        ''', unsafe_allow_html=True)
+        # Action buttons with better styling
+        st.markdown("### ⚙️ Actions")
         
-        # Modern action buttons
         col1, col2 = st.columns(2)
         
         with col1:
-            if st.button("🗑️", key="clear_data_btn", help="Clear All Data"):
+            if st.button("🗑️ Clear Data", key="clear_data_btn", type="secondary", use_container_width=True):
                 if os.path.exists(excel_file):
                     os.remove(excel_file)
                 st.success("All data cleared!")
                 st.rerun()
         
         with col2:
-            if st.button("🚪", key="logout_btn", help="Logout"):
+            if st.button("🚪 Logout", key="logout_btn", type="primary", use_container_width=True):
                 st.session_state["authenticated"] = False
                 st.session_state["auth_cookie"] = None
                 session_file = "session.json"
@@ -442,19 +430,40 @@ def show():
                     os.remove(session_file)
                 st.rerun()
         
-        # User info section
+        # User info section using native streamlit
+        st.markdown("---")
+        st.markdown("### 👤 User Profile")
+        
         auth_cookie = st.session_state.get("auth_cookie", {})
         user_name = auth_cookie.get("first_name", "User")
+        user_last = auth_cookie.get("last_name", "")
         user_role = auth_cookie.get("role", "user")
-        user_initial = user_name[0].upper() if user_name else "U"
         
-        st.markdown(f'''
-            <div class="user-info">
-                <div class="user-avatar">{user_initial}</div>
-                <div class="user-name">{user_name} {auth_cookie.get("last_name", "")}</div>
-                <div class="user-role">{user_role}</div>
-            </div>
-        ''', unsafe_allow_html=True)
+        # Create user info card
+        st.markdown(f"""
+        <div style="
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.2);
+        ">
+            <div style="
+                font-size: 24px;
+                margin-bottom: 8px;
+            ">👤</div>
+            <div style="
+                color: white;
+                font-weight: 500;
+                margin-bottom: 4px;
+            ">{user_name} {user_last}</div>
+            <div style="
+                color: rgba(255,255,255,0.7);
+                font-size: 12px;
+                text-transform: capitalize;
+            ">{user_role}</div>
+        </div>
+        """, unsafe_allow_html=True)
     
 
 
