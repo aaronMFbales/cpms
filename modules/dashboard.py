@@ -244,8 +244,6 @@ def show():
         .modern-btn {
             width: 100%;
             padding: 10px 15px;
-            background-color: #dc3545;
-            color: white;
             border: none;
             border-radius: 6px;
             cursor: pointer;
@@ -334,10 +332,10 @@ def show():
          </style>
      """, unsafe_allow_html=True)
     
-    # Use Streamlit's native sidebar with custom content
+    # Professional Sidebar using pure Streamlit components
     with st.sidebar:
-        # Custom header
-        st.markdown('<div class="sidebar-header">CPMS Dashboard</div>', unsafe_allow_html=True)
+        # Simple header
+        st.title("CPMS Dashboard")
         
         # Define menu items organized by categories
         menu_config = {
@@ -388,7 +386,6 @@ def show():
         # Data Management Section
         st.subheader("Data Management")
         
-        # Show active sheets count
         data_dir = "data"
         excel_file = os.path.join(data_dir, "cpms_data.xlsx")
         if os.path.exists(excel_file):
