@@ -332,70 +332,59 @@ def show():
          </style>
      """, unsafe_allow_html=True)
     
-    # Modern Professional Sidebar Content using Streamlit native components
+    # Professional Sidebar using pure Streamlit components
     with st.sidebar:
-        # Custom header with logo
-        st.markdown('<div class="sidebar-header"><div class="sidebar-logo">📊</div>CPMS Dashboard</div>', unsafe_allow_html=True)
+        # Simple header
+        st.title("CPMS Dashboard")
         
-        # Define menu items with icons and categories
+        # Define menu items organized by categories
         menu_config = {
-            "📋 OVERVIEW": [
-                "🏠 Dashboard",
-                "👥 Client"
+            "OVERVIEW": [
+                "Dashboard",
+                "Client"
             ],
-            "🏢 BUSINESS MANAGEMENT": [
-                "📞 Business Contact Information",
-                "📋 Business Registrations", 
-                "👤 Business Owner",
-                "🏢 Business Profile",
-                "💰 Business Financial Structure"
+            "BUSINESS MANAGEMENT": [
+                "Business Contact Information",
+                "Business Registrations", 
+                "Business Owner",
+                "Business Profile",
+                "Business Financial Structure"
             ],
-            "🌍 MARKET OPERATIONS": [
-                "🏪 Market Domestic",
-                "🌍 Market Export", 
-                "📦 Market Import",
-                "🛍️ Product_Service Lines"
+            "MARKET OPERATIONS": [
+                "Market Domestic",
+                "Market Export", 
+                "Market Import",
+                "Product_Service Lines"
             ],
-            "📊 ANALYTICS & SUPPORT": [
-                "📊 Employment Statistics",
-                "🤝 Assistance",
-                "💼 Jobs Generated"
+            "ANALYTICS & SUPPORT": [
+                "Employment Statistics",
+                "Assistance",
+                "Jobs Generated"
             ]
         }
         
-        # Create all options list for radio button
-        all_options = []
-        for category, items in menu_config.items():
-            for item in items:
-                # Remove emoji and icon for the actual value
-                clean_name = item.split(' ', 1)[1] if ' ' in item else item
-                all_options.append(clean_name)
-        
-        # Create the navigation using selectbox for better control
-        st.markdown("### 🧭 Navigation")
-        
-        # Create a more visual menu using columns and buttons
-        selected = None
+        # Initialize session state
         if "selected_nav_item" not in st.session_state:
             st.session_state.selected_nav_item = "Dashboard"
         
+        # Create navigation
+        st.subheader("Navigation")
+        
         for category, items in menu_config.items():
-            st.markdown(f"**{category}**")
+            st.write(f"**{category}**")
             
             for item in items:
-                clean_name = item.split(' ', 1)[1] if ' ' in item else item
-                
-                # Create a visual button-like selectbox option
-                if st.button(f"{item}", key=f"nav_{clean_name}", use_container_width=True):
-                    st.session_state.selected_nav_item = clean_name
+                # Create navigation buttons
+                if st.button(item, key=f"nav_{item}", use_container_width=True):
+                    st.session_state.selected_nav_item = item
                     st.rerun()
             
-            st.markdown("---")
+            st.divider()
         
         selected = st.session_state.selected_nav_item
         
         # Data Management Section
-        st.markdown("### 📁 Data Management")
+        st.subheader("Data Management")
         
         data_dir = "data"
         excel_file = os.path.join(data_dir, "cpms_data.xlsx")
@@ -403,26 +392,26 @@ def show():
             try:
                 excel_data = pd.read_excel(excel_file, sheet_name=None)
                 active_sheets = len([sheet for sheet in excel_data.keys() if sheet != 'Sheet1'])
-                st.info(f"📊 Active Sheets: **{active_sheets}**")
+                st.info(f"Active Sheets: {active_sheets}")
             except:
-                st.info("📊 Active Sheets: **0**")
+                st.info("Active Sheets: 0")
         else:
-            st.info("📊 Active Sheets: **0**")
+            st.info("Active Sheets: 0")
         
-        # Action buttons with better styling
-        st.markdown("### ⚙️ Actions")
+        # Action buttons
+        st.subheader("Actions")
         
         col1, col2 = st.columns(2)
         
         with col1:
-            if st.button("🗑️ Clear Data", key="clear_data_btn", type="secondary", use_container_width=True):
+            if st.button("Clear Data", key="clear_data_btn", type="secondary", use_container_width=True):
                 if os.path.exists(excel_file):
                     os.remove(excel_file)
                 st.success("All data cleared!")
                 st.rerun()
         
         with col2:
-            if st.button("🚪 Logout", key="logout_btn", type="primary", use_container_width=True):
+            if st.button("Logout", key="logout_btn", type="primary", use_container_width=True):
                 st.session_state["authenticated"] = False
                 st.session_state["auth_cookie"] = None
                 session_file = "session.json"
@@ -430,40 +419,18 @@ def show():
                     os.remove(session_file)
                 st.rerun()
         
-        # User info section using native streamlit
-        st.markdown("---")
-        st.markdown("### 👤 User Profile")
+        # User info section
+        st.divider()
+        st.subheader("User Profile")
         
         auth_cookie = st.session_state.get("auth_cookie", {})
         user_name = auth_cookie.get("first_name", "User")
         user_last = auth_cookie.get("last_name", "")
         user_role = auth_cookie.get("role", "user")
         
-        # Create user info card
-        st.markdown(f"""
-        <div style="
-            background: rgba(255,255,255,0.1);
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            border: 1px solid rgba(255,255,255,0.2);
-        ">
-            <div style="
-                font-size: 24px;
-                margin-bottom: 8px;
-            ">👤</div>
-            <div style="
-                color: white;
-                font-weight: 500;
-                margin-bottom: 4px;
-            ">{user_name} {user_last}</div>
-            <div style="
-                color: rgba(255,255,255,0.7);
-                font-size: 12px;
-                text-transform: capitalize;
-            ">{user_role}</div>
-        </div>
-        """, unsafe_allow_html=True)
+        # Display user info using native components
+        st.write(f"**Name:** {user_name} {user_last}")
+        st.write(f"**Role:** {user_role.title()}")
     
 
 
