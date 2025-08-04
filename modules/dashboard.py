@@ -117,13 +117,14 @@ def show():
         "Employment Statistics", "Assistance", "Jobs Generated"
     ]
 
-    # Custom sidebar using Streamlit components with enhanced styling
+      # Modern Professional Sidebar with enhanced styling
     st.markdown("""
         <style>
-        /* Enhanced sidebar styling */
+        /* Modern Sidebar Design */
         .stSidebar {
-            background-color: #f8f9fa !important;
-            border-right: 1px solid #dee2e6 !important;
+            background: linear-gradient(180deg, #1e3a8a 0%, #172087 100%) !important;
+            border-right: none !important;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1) !important;
         }
         
         .stSidebar .sidebar-content {
@@ -132,71 +133,156 @@ def show():
         
         /* Custom header for sidebar */
         .sidebar-header {
-            background-color: #172087;
+            background: rgba(255,255,255,0.1);
             color: white;
-            padding: 20px;
+            padding: 25px 20px;
             margin: 0;
             text-align: center;
-            font-weight: 600;
-            font-size: 18px;
+            font-weight: 700;
+            font-size: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
         }
         
-        /* Menu item styling */
-        .sidebar-menu-item {
-            padding: 15px 20px;
-            border-bottom: 1px solid #e9ecef;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-            font-size: 16px;
-        }
-        
-        .sidebar-menu-item:hover {
-            background-color: #e7f1ff;
+        .sidebar-logo {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 50%;
+            margin: 0 auto 15px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
             color: #172087;
         }
         
-        .sidebar-menu-item.active {
-            background-color: #172087;
+        /* Navigation Menu Styling */
+        .nav-menu {
+            padding: 20px 0;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            margin: 2px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: rgba(255,255,255,0.8);
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            border-left: 3px solid transparent;
+        }
+        
+        .nav-item:hover {
+            background: rgba(255,255,255,0.15);
             color: white;
+            border-left: 3px solid #60a5fa;
+            transform: translateX(5px);
         }
         
-        /* Section styling */
-        .sidebar-section {
-            padding: 20px;
-            border-bottom: 1px solid #dee2e6;
-        }
-        
-        .sidebar-section h4 {
-            margin: 0 0 15px 0;
-            font-size: 16px;
+        .nav-item.active {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border-left: 3px solid #60a5fa;
             font-weight: 600;
-            color: #333;
         }
         
-        /* Button styling */
-        .sidebar-button {
+        .nav-icon {
+            margin-right: 12px;
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        /* Section dividers */
+        .nav-section-title {
+            color: rgba(255,255,255,0.6);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 20px 20px 10px 20px;
+            margin-top: 10px;
+        }
+        
+        .nav-divider {
+            height: 1px;
+            background: rgba(255,255,255,0.1);
+            margin: 15px 20px;
+        }
+        
+        /* Data Management Section */
+        .data-section {
+            background: rgba(255,255,255,0.05);
+            margin: 20px 10px;
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .data-section h4 {
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            margin: 0 0 10px 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .data-stats {
+            color: rgba(255,255,255,0.8);
+            font-size: 13px;
+            margin-bottom: 15px;
+        }
+        
+        /* Modern Buttons */
+        .modern-btn {
             width: 100%;
             padding: 10px 15px;
             background-color: #dc3545;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 14px;
-            margin-bottom: 10px;
-            transition: background-color 0.2s ease;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
-        .sidebar-button:hover {
-            background-color: #c82333;
+        .btn-danger {
+            background: #ef4444;
+            color: white;
         }
         
-        .sidebar-button.logout {
-            background-color: #6c757d;
+        .btn-danger:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
         }
         
-        .sidebar-button.logout:hover {
-            background-color: #5a6268;
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #4b5563;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+        }
+        
+        /* Hide default radio button styling */
+        .stRadio > div {
+            display: none !important;
         }
         
         /* Hide default sidebar elements */
@@ -208,34 +294,99 @@ def show():
         [data-testid="stSidebar"] .menu-title svg {
             display: none !important;
         }
-        </style>
-    """, unsafe_allow_html=True)
+        
+        /* User info section */
+        .user-info {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            background: #60a5fa;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .user-name {
+            color: white;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        
+        .user-role {
+            color: rgba(255,255,255,0.7);
+            font-size: 11px;
+            text-transform: capitalize;
+                 }
+         </style>
+     """, unsafe_allow_html=True)
     
     # Use Streamlit's native sidebar with custom content
     with st.sidebar:
         # Custom header
         st.markdown('<div class="sidebar-header">CPMS Dashboard</div>', unsafe_allow_html=True)
         
-        # Menu items
-        menu_options = [
-            "Dashboard", "Client", "Business Contact Information", "Business Registrations",
-            "Business Owner", "Business Profile", "Business Financial Structure", "Market Domestic",
-            "Market Export", "Market Import", "Product_Service Lines", "Employment Statistics",
-            "Assistance", "Jobs Generated"
-        ]
+        # Define menu items organized by categories
+        menu_config = {
+            "OVERVIEW": [
+                "Dashboard",
+                "Client"
+            ],
+            "BUSINESS MANAGEMENT": [
+                "Business Contact Information",
+                "Business Registrations", 
+                "Business Owner",
+                "Business Profile",
+                "Business Financial Structure"
+            ],
+            "MARKET OPERATIONS": [
+                "Market Domestic",
+                "Market Export", 
+                "Market Import",
+                "Product_Service Lines"
+            ],
+            "ANALYTICS & SUPPORT": [
+                "Employment Statistics",
+                "Assistance",
+                "Jobs Generated"
+            ]
+        }
         
-        # Create menu using radio buttons for better control
-        selected = st.radio(
-            "Navigation",
-            menu_options,
-            index=0,
-            label_visibility="collapsed",
-            key="sidebar_navigation"
-        )
+        # Initialize session state
+        if "selected_nav_item" not in st.session_state:
+            st.session_state.selected_nav_item = "Dashboard"
+        
+        # Create navigation
+        st.subheader("Navigation")
+        
+        for category, items in menu_config.items():
+            st.write(f"**{category}**")
+            
+            for item in items:
+                # Create navigation buttons
+                if st.button(item, key=f"nav_{item}", use_container_width=True):
+                    st.session_state.selected_nav_item = item
+                    st.rerun()
+            
+            st.divider()
+        
+        selected = st.session_state.selected_nav_item
         
         # Data Management Section
-        st.markdown("---")
-        st.markdown("### Data Management")
+        st.subheader("Data Management")
         
         # Show active sheets count
         data_dir = "data"
@@ -244,29 +395,45 @@ def show():
             try:
                 excel_data = pd.read_excel(excel_file, sheet_name=None)
                 active_sheets = len([sheet for sheet in excel_data.keys() if sheet != 'Sheet1'])
-                st.markdown(f"**Active Sheets:** {active_sheets}")
+                st.info(f"Active Sheets: {active_sheets}")
             except:
-                st.markdown("**Active Sheets:** 0")
+                st.info("Active Sheets: 0")
         else:
-            st.markdown("**Active Sheets:** 0")
+            st.info("Active Sheets: 0")
         
-        # Clear All Data button
-        if st.button("Clear All Data", key="clear_data_btn"):
-            if os.path.exists(excel_file):
-                os.remove(excel_file)
-            st.success("All data cleared!")
-            st.rerun()
+        # Action buttons
+        st.subheader("Actions")
         
-        st.markdown("---")
+        col1, col2 = st.columns(2)
         
-        # Logout button
-        if st.button("Logout", key="logout_btn"):
-            st.session_state["authenticated"] = False
-            st.session_state["auth_cookie"] = None
-            session_file = "session.json"
-            if os.path.exists(session_file):
-                os.remove(session_file)
-            st.rerun()
+        with col1:
+            if st.button("Clear Data", key="clear_data_btn", type="secondary", use_container_width=True):
+                if os.path.exists(excel_file):
+                    os.remove(excel_file)
+                st.success("All data cleared!")
+                st.rerun()
+        
+        with col2:
+            if st.button("Logout", key="logout_btn", type="primary", use_container_width=True):
+                st.session_state["authenticated"] = False
+                st.session_state["auth_cookie"] = None
+                session_file = "session.json"
+                if os.path.exists(session_file):
+                    os.remove(session_file)
+                st.rerun()
+        
+        # User info section
+        st.divider()
+        st.subheader("User Profile")
+        
+        auth_cookie = st.session_state.get("auth_cookie", {})
+        user_name = auth_cookie.get("first_name", "User")
+        user_last = auth_cookie.get("last_name", "")
+        user_role = auth_cookie.get("role", "user")
+        
+        # Display user info using native components
+        st.write(f"**Name:** {user_name} {user_last}")
+        st.write(f"**Role:** {user_role.title()}")
     
 
 
