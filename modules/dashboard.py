@@ -470,6 +470,7 @@ def show():
         st.write(f"**Name:** {user_name} {user_last}")
         st.write(f"**Role:** {user_role.title()}")
     
+    
 
 
     st.session_state.selected_sheet = selected
