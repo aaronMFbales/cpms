@@ -125,6 +125,21 @@ def show():
             background: linear-gradient(180deg, #1e3a8a 0%, #172087 100%) !important;
             border-right: none !important;
             box-shadow: 2px 0 10px rgba(0,0,0,0.1) !important;
+            width: 280px !important;
+            min-width: 280px !important;
+            max-width: 280px !important;
+        }
+        
+        /* Disable sidebar resizing */
+        .stSidebar .css-1d391kg {
+            width: 280px !important;
+            min-width: 280px !important;
+            max-width: 280px !important;
+        }
+        
+        /* Hide resize handle */
+        .stSidebar .css-1lcbmhc {
+            display: none !important;
         }
         
         .stSidebar .sidebar-content {
@@ -151,6 +166,15 @@ def show():
             color: white !important;
             background-color: rgba(255,255,255,0.1) !important;
             border: 1px solid rgba(255,255,255,0.2) !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            font-size: 13px !important;
+            padding: 8px 12px !important;
+            margin-bottom: 4px !important;
+            height: auto !important;
+            min-height: 35px !important;
+            max-height: 35px !important;
         }
         
         /* Sidebar button hover */
@@ -375,49 +399,36 @@ def show():
         # Simple header
         st.title("CPMS Dashboard")
         
-        # Define menu items organized by categories
-        menu_config = {
-            "OVERVIEW": [
-                "Dashboard",
-                "Client"
-            ],
-            "BUSINESS MANAGEMENT": [
-                "Business Contact Information",
-                "Business Registrations", 
-                "Business Owner",
-                "Business Profile",
-                "Business Financial Structure"
-            ],
-            "MARKET OPERATIONS": [
-                "Market Domestic",
-                "Market Export", 
-                "Market Import",
-                "Product_Service Lines"
-            ],
-            "ANALYTICS & SUPPORT": [
-                "Employment Statistics",
-                "Assistance",
-                "Jobs Generated"
-            ]
-        }
+        # Define all menu items in order (no categories)
+        menu_items = [
+            "Dashboard",
+            "Client",
+            "Business Contact Information",
+            "Business Registrations", 
+            "Business Owner",
+            "Business Profile",
+            "Business Financial Structure",
+            "Market Domestic",
+            "Market Export", 
+            "Market Import",
+            "Product_Service Lines",
+            "Employment Statistics",
+            "Assistance",
+            "Jobs Generated"
+        ]
         
         # Initialize session state
         if "selected_nav_item" not in st.session_state:
             st.session_state.selected_nav_item = "Dashboard"
         
-        # Create navigation
+        # Create navigation without categories
         st.subheader("Navigation")
         
-        for category, items in menu_config.items():
-            st.write(f"**{category}**")
-            
-            for item in items:
-                # Create navigation buttons
-                if st.button(item, key=f"nav_{item}", use_container_width=True):
-                    st.session_state.selected_nav_item = item
-                    st.rerun()
-            
-            st.divider()
+        for item in menu_items:
+            # Create navigation buttons
+            if st.button(item, key=f"nav_{item}", use_container_width=True):
+                st.session_state.selected_nav_item = item
+                st.rerun()
         
         selected = st.session_state.selected_nav_item
         
