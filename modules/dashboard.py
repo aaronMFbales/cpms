@@ -131,6 +131,44 @@ def show():
             padding: 0 !important;
         }
         
+        /* Make all sidebar text white */
+        .stSidebar * {
+            color: white !important;
+        }
+        
+        /* Sidebar titles and headers */
+        .stSidebar h1, .stSidebar h2, .stSidebar h3, .stSidebar h4, .stSidebar h5, .stSidebar h6 {
+            color: white !important;
+        }
+        
+        /* Sidebar text elements */
+        .stSidebar p, .stSidebar div, .stSidebar span, .stSidebar label {
+            color: white !important;
+        }
+        
+        /* Sidebar buttons text */
+        .stSidebar button {
+            color: white !important;
+            background-color: rgba(255,255,255,0.1) !important;
+            border: 1px solid rgba(255,255,255,0.2) !important;
+        }
+        
+        /* Sidebar button hover */
+        .stSidebar button:hover {
+            background-color: rgba(255,255,255,0.2) !important;
+            color: white !important;
+        }
+        
+        /* Info boxes in sidebar */
+        .stSidebar .stInfo {
+            background-color: rgba(255,255,255,0.1) !important;
+            border: 1px solid rgba(255,255,255,0.2) !important;
+        }
+        
+        .stSidebar .stInfo > div {
+            color: white !important;
+        }
+        
         /* Custom header for sidebar */
         .sidebar-header {
             background: rgba(255,255,255,0.1);
