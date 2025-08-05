@@ -125,25 +125,6 @@ def show():
             background: linear-gradient(180deg, #1e3a8a 0%, #172087 100%) !important;
             border-right: none !important;
             box-shadow: 2px 0 10px rgba(0,0,0,0.1) !important;
-            width: 280px !important;
-            min-width: 280px !important;
-            max-width: 280px !important;
-        }
-        
-        /* Disable sidebar resizing */
-        .stSidebar .css-1d391kg {
-            width: 280px !important;
-            min-width: 280px !important;
-            max-width: 280px !important;
-        }
-        
-        /* Hide resize handle */
-        .stSidebar .css-1lcbmhc {
-            display: none !important;
-        }
-        
-        .stSidebar .sidebar-content {
-            padding: 0 !important;
         }
         
         /* Make all sidebar text white */
@@ -391,7 +372,11 @@ def show():
             font-size: 11px;
             text-transform: capitalize;
                  }
-         </style>
+        
+        .stSidebar .sidebar-content {
+            padding: 0 !important;
+        }
+        </style>
      """, unsafe_allow_html=True)
     
     # Professional Sidebar using pure Streamlit components
