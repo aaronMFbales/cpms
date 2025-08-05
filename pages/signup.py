@@ -1,5 +1,4 @@
 import streamlit as st
-from PIL import Image
 import time
 import json
 import os
@@ -8,7 +7,6 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
-from utils.philippine_locations import create_location_widgets
 
 def hash_password(password):
     """Hash password for security"""
@@ -53,7 +51,7 @@ def send_registration_notification(user_data):
         msg['To'] = receiver_email
         msg['Subject'] = "New User Registration - CPMS"
         
-        # Email body
+        # Email body (removed location details)
         body = f"""
         New User Registration Notification
         
@@ -66,7 +64,6 @@ def send_registration_notification(user_data):
         - Organization: {user_data.get('organization', '')}
         - Position: {user_data.get('position', '')}
         - Contact Number: {user_data.get('contact_number', '')}
-        - Location: {user_data.get('region', '')}, {user_data.get('province', '')}, {user_data.get('city', '')}, {user_data.get('barangay', '')}, {user_data.get('purok', '')}
         - Registration Date: {datetime.fromtimestamp(user_data.get('created_at', time.time())).strftime('%Y-%m-%d %H:%M:%S')}
         
         Please log in to the admin panel to approve or reject this user.
@@ -137,8 +134,6 @@ span[data-baseweb="form-control-caption"] {
 """
 st.markdown(hide_st_style, unsafe_allow_html=True)
 
-
-
 st.markdown("<h2 style='text-align: left; color: #263d81; font-weight: bold; font-size: 40px;'>ACCOUNT REGISTRATION</h2>", unsafe_allow_html=True)
 
 # Create a 3-column layout for the form
@@ -161,16 +156,6 @@ with col3:
     organization = st.text_input("Organization/Department", key="organization")
     position = st.text_input("Position/Title", key="position")
     contact_number = st.text_input("Contact Number", key="contact_number")
-
-# Location Information - Full width
-st.markdown("### Location Information")
-location_data = create_location_widgets()
-
-# Address Information - Full width
-st.markdown("### Address Information")
-district = st.text_input("District", key="district")
-address = st.text_input("Address", key="address")
-zip_code = st.text_input("Zip Code", key="zip_code")
 
 # Terms and Conditions - Full width
 st.markdown("### Terms and Conditions")
@@ -224,15 +209,7 @@ if submit:
             "email": email,
             "organization": organization,
             "position": position,
-            "contact_number": contact_number,
-            "region": location_data["region"],
-            "province": location_data["province"],
-            "city": location_data["city"],
-            "barangay": location_data["barangay"],
-            "purok": location_data["purok"],
-            "district": district,
-            "address": address,
-            "zip_code": zip_code
+            "contact_number": contact_number
         }
         
         users[username] = new_user
@@ -256,4 +233,4 @@ if submit:
             st.switch_page("main.py")
 
 if back_to_login:
-    st.switch_page("main.py") 
+    st.switch_page("main.py")
