@@ -100,8 +100,8 @@ def show():
 
         # Center the title with slight left adjustment
         st.markdown(
-            "<h4 style='text-align: center; color: #263d81; font-weight: bold; font-size: 30px; white-space: nowrap; margin-left: -150px;'>"
-            "DTI XI - CLIENT PERFORMANCE MONITORING SYSTEM"
+            "<h4 style='text-align: center; color: #263d81; font-weight: bold; font-size: 30px; white-space: nowrap; margin-left: -210px;'>"
+            "DTI REGION XI - CLIENT PERFORMANCE MONITORING SYSTEM"
             "</h4>",
             unsafe_allow_html=True
         )

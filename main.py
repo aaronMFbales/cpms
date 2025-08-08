@@ -4,12 +4,19 @@ import time
 import json
 import os
 
+# Configure the page layout at the very beginning
+st.set_page_config(
+    page_title="CPMS Dashboard", 
+    layout="wide",
+    initial_sidebar_state="auto"
+)
+
 def main():
     # Initialize session state for authentication
     if "authenticated" not in st.session_state:
         st.session_state["authenticated"] = False
     
-    # Check for existing authentication cookie
+    # Check for existing authentication cookiez``
     if "auth_cookie" not in st.session_state:
         st.session_state["auth_cookie"] = None
     

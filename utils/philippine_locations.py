@@ -39,7 +39,7 @@ def create_location_widgets():
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.markdown("### Region")
+        st.markdown('<h3 style="color: black;">Region <span style="color: red;">*</span></h3>', unsafe_allow_html=True)
         regions = regions_df['regDesc'].unique()
         selected_region = st.selectbox("Select Region:", regions, key="loc_region_select")
         
@@ -52,7 +52,7 @@ def create_location_widgets():
             st.rerun()
     
     with col2:
-        st.markdown("### Province")
+        st.markdown('<h3 style="color: black;">Province <span style="color: red;">*</span></h3>', unsafe_allow_html=True)
         if st.session_state.loc_region:
             region_code = regions_df[regions_df['regDesc'] == st.session_state.loc_region]['regCode'].iloc[0]
             provinces = provinces_df[provinces_df['regCode'] == region_code]['provDesc'].unique()
@@ -68,7 +68,7 @@ def create_location_widgets():
             selected_province = st.selectbox("Select Province:", ["Select Region First"], key="loc_province_select")
     
     with col3:
-        st.markdown("### City/Municipality")
+        st.markdown('<h3 style="color: black;">City/Municipality <span style="color: red;">*</span></h3>', unsafe_allow_html=True)
         if st.session_state.loc_province:
             province_code = provinces_df[provinces_df['provDesc'] == st.session_state.loc_province]['provCode'].iloc[0]
             cities = cities_df[cities_df['provCode'] == province_code]['citymunDesc'].unique()
@@ -83,7 +83,7 @@ def create_location_widgets():
             selected_city = st.selectbox("Select City:", ["Select Province First"], key="loc_city_select")
     
     with col4:
-        st.markdown("### Barangay")
+        st.markdown('<h3 style="color: black;">Barangay <span style="color: red;">*</span></h3>', unsafe_allow_html=True)
         if st.session_state.loc_city:
             city_code = cities_df[cities_df['citymunDesc'] == st.session_state.loc_city]['citymunCode'].iloc[0]
             barangays = barangays_df[barangays_df['citymunCode'] == city_code]['brgyDesc'].unique()
