@@ -208,47 +208,172 @@ def send_rejection_notification(user_data):
 
 st.set_page_config(page_title="CPMS Admin", page_icon="", layout="wide")
 
-# Check if user is admin
+# Load session data if it exists
+def load_session():
+    session_file = "session.json"
+    if os.path.exists(session_file):
+        try:
+            with open(session_file, 'r') as f:
+                session_data = json.load(f)
+                return session_data
+        except:
+            return None
+    return None
+
+# Check if user is admin - restore session if needed
 if "auth_cookie" not in st.session_state or not st.session_state["auth_cookie"]:
-    st.error("Access denied. Admin privileges required.")
-    st.stop()
+    # Try to restore from session file
+    saved_session = load_session()
+    if saved_session:
+        st.session_state["authenticated"] = True
+        st.session_state["auth_cookie"] = saved_session
+    else:
+        st.error("Access denied. Admin privileges required.")
+        st.stop()
 
 auth_cookie = st.session_state["auth_cookie"]
 if auth_cookie.get("role") != "admin":
     st.error("Access denied. Admin privileges required.")
     st.stop()
 
-# Hide Streamlit elements
-hide_st_style = """
+# Clean and minimal CSS - no interference with toggle button
+st.markdown("""
     <style>
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
-    .stButton>button:hover {
-        background-color: #172087 !important;
+    /* Hide Streamlit's default page navigation */
+    [data-testid="stSidebarNav"] {
+        display: none !important;
+    }
+    
+    /* Modern Sidebar Design */
+    .stSidebar {
+        background: linear-gradient(180deg, #1e3a8a 0%, #172087 100%) !important;
+    }
+    
+    /* Make all sidebar text white */
+    .stSidebar * {
         color: white !important;
     }
+    
+    /* Sidebar button styling */
+    .stSidebar button {
+        color: white !important;
+        background-color: rgba(255,255,255,0.1) !important;
+        border: 1px solid rgba(255,255,255,0.2) !important;
+        border-radius: 8px !important;
+    }
+    
+    .stSidebar button:hover {
+        background-color: rgba(255,255,255,0.2) !important;
+    }
+    
+    /* Custom sidebar components */
+    .sidebar-header {
+        background: rgba(255,255,255,0.1);
+        border-radius: 12px;
+        padding: 24px 20px;
+        margin: 30px 10px 30px 10px;
+        text-align: center;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    .admin-logo {
+        width: 50px;
+        height: 50px;
+        background: #60a5fa;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 8px auto 15px;
+        color: white;
+        font-weight: bold;
+        font-size: 20px;
+    }
+    
+    .admin-title {
+        color: white;
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+    
+    .admin-subtitle {
+        color: rgba(255,255,255,0.7);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .nav-divider {
+        height: 1px;
+        background: rgba(255,255,255,0.1);
+        margin: 15px 20px;
+    }
+    
+    .admin-stats {
+        background: rgba(255,255,255,0.05);
+        margin: 15px 10px;
+        border-radius: 10px;
+        padding: 12px;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .admin-stats h4 {
+        color: white;
+        font-size: 13px;
+        font-weight: 600;
+        margin: 0 0 8px 0;
+    }
+    
+    .stats-info {
+        color: rgba(255,255,255,0.85);
+        font-size: 11px;
+        margin-bottom: 6px;
+    }
+    
+    .user-info {
+        background: rgba(255,255,255,0.1);
+        border-radius: 8px;
+        padding: 12px;
+        border: 1px solid rgba(255,255,255,0.2);
+        margin: 15px 10px;
+    }
+    
+    .user-avatar {
+        width: 35px;
+        height: 35px;
+        background: #60a5fa;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+    
+    .user-name {
+        color: white;
+        font-size: 13px;
+        font-weight: 500;
+    }
+    
+    .user-role {
+        color: rgba(255,255,255,0.7);
+        font-size: 11px;
+        text-transform: capitalize;
+    }
     </style>
-"""
-st.markdown(hide_st_style, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
-st.markdown("<h1 style='color: #172087;'>Admin Dashboard</h1>", unsafe_allow_html=True)
+# Main content area with dynamic tabs
+selected_tab = st.session_state.get("admin_selected_tab", "Pending Approvals")
 
-# Add logout button in main content area
-col1, col2 = st.columns([3, 1])
-with col2:
-    if st.button("Logout", use_container_width=True):
-        st.session_state["authenticated"] = False
-        st.session_state["auth_cookie"] = None
-        session_file = "session.json"
-        if os.path.exists(session_file):
-            os.remove(session_file)
-        st.switch_page("main.py")
+# Header with selected tab name
+st.markdown(f"<h1 style='color: #172087;'>Admin Dashboard - {selected_tab}</h1>", unsafe_allow_html=True)
 
-# Navigation
-tab1, tab2, tab3, tab4 = st.tabs(["Pending Approvals", "All Users", "System Settings", "Deleted Users"])
-
-with tab1:
+# Display content based on selected tab
+if selected_tab == "Pending Approvals":
     st.markdown("<h2>Pending User Approvals</h2>", unsafe_allow_html=True)
     
     users = load_users()
@@ -305,7 +430,7 @@ with tab1:
                                 st.warning("User rejected, but email notification failed.")
                             st.rerun()
 
-with tab2:
+elif selected_tab == "All Users":
     st.markdown("<h2>All Users</h2>", unsafe_allow_html=True)
     
     users = load_users()
@@ -349,7 +474,7 @@ with tab2:
                         else:
                             st.error("Please check the confirmation box to delete this user.")
 
-with tab3:
+elif selected_tab == "System Settings":
     st.markdown("<h2>System Settings</h2>", unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
@@ -368,16 +493,16 @@ with tab3:
     with col2:
         st.markdown("### Quick Actions")
         
-        if st.button("Refresh User Data"):
+        if st.button("Refresh User Data", key="settings_refresh"):
             st.rerun()
         
-        if st.button("Export User Report"):
+        if st.button("Export User Report", key="settings_export"):
             st.info("Export functionality coming soon!")
         
-        if st.button("System Maintenance"):
+        if st.button("System Maintenance", key="settings_maintenance"):
             st.info("Maintenance mode coming soon!")
 
-with tab4:
+elif selected_tab == "Deleted Users":
     st.markdown("<h2>Deleted Users</h2>", unsafe_allow_html=True)
     
     backup_data = load_deleted_users_backup()
@@ -412,25 +537,83 @@ with tab4:
                         else:
                             st.error(f"Failed to restore user {username}")
 
-# Sidebar navigation
+# Professional Admin Sidebar
 with st.sidebar:
-    st.markdown("### Admin Navigation")
+    # Admin header section
+    st.markdown("""
+        <div class="sidebar-header">
+            <div class="admin-logo">A</div>
+            <div class="admin-title">Admin Panel</div>
+            <div class="admin-subtitle">Management Dashboard</div>
+        </div>
+    """, unsafe_allow_html=True)
     
-    if st.button("Back to Dashboard"):
-        st.switch_page("main.py")
+    # Navigation section
+    st.subheader("Navigation")
     
-    if st.button("View Profile"):
-        st.info("Profile management coming soon!")
+    # Initialize session state for navigation
+    if "admin_selected_tab" not in st.session_state:
+        st.session_state.admin_selected_tab = "Pending Approvals"
     
-    if st.button("Change Password"):
-        st.info("Password change coming soon!")
+    # Navigation buttons
+    admin_tabs = [
+        "Pending Approvals",
+        "All Users", 
+        "System Settings",
+        "Deleted Users"
+    ]
     
-    st.markdown("---")
-    st.markdown(f"**Logged in as:** {auth_cookie.get('username', 'admin')}")
-    st.markdown("**Role:** Administrator")
-    st.markdown("**Session Status:** Active")
+    for tab in admin_tabs:
+        if st.button(tab, key=f"nav_{tab}", use_container_width=True):
+            st.session_state.admin_selected_tab = tab
+            st.rerun()
     
-    if st.button("Logout"):
+    # Divider
+    st.markdown('<div class="nav-divider"></div>', unsafe_allow_html=True)
+    
+    # Quick actions section
+    st.subheader("Quick Actions")
+    
+    if st.button("Refresh Data", key="refresh_data", use_container_width=True):
+        st.rerun()
+    
+    if st.button("Export Report", key="export_report", use_container_width=True):
+        st.info("Export functionality coming soon!")
+    
+    # System stats section
+    users = load_users()
+    total_users = len(users)
+    approved_users = len([u for u in users.values() if u.get("approved")])
+    pending_users = total_users - approved_users
+    
+    st.markdown(f"""
+        <div class="admin-stats">
+            <h4>System Overview</h4>
+            <div class="stats-info">Users: {total_users}</div>
+            <div class="stats-info">Active: {approved_users}</div>
+            <div class="stats-info">Pending: {pending_users}</div>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    # User info section - placed right below System Overview
+    auth_cookie = st.session_state["auth_cookie"]
+    user_name = auth_cookie.get("first_name", auth_cookie.get("username", "Admin"))
+    user_role = auth_cookie.get("role", "admin")
+    
+    # Safety check for user_name
+    avatar_letter = user_name[0].upper() if user_name else "A"
+    
+    st.markdown(f"""
+        <div class="user-info">
+            <div class="user-avatar">{avatar_letter}</div>
+            <div class="user-name">{user_name if user_name else "Admin"}</div>
+            <div class="user-role">{user_role} • Active</div>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    # Add some spacing before logout button
+    st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
+    if st.button("Logout", key="sidebar_logout", type="primary", use_container_width=True):
         st.session_state["authenticated"] = False
         st.session_state["auth_cookie"] = None
         session_file = "session.json"

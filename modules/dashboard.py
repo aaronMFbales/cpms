@@ -81,23 +81,126 @@ def get_excel_sheets():
             return []
     return []
 
+def perform_global_search(search_term):
+    """Search across all sheets for the given term"""
+    results = []
+    data_dir = "data"
+    excel_file = os.path.join(data_dir, "cpms_data.xlsx")
+    
+    if not os.path.exists(excel_file):
+        return results
+    
+    try:
+        # Read all sheets
+        excel_data = pd.read_excel(excel_file, sheet_name=None)
+        
+        # Search through each sheet
+        for sheet_name, df in excel_data.items():
+            if sheet_name == 'Sheet1':  # Skip default sheet
+                continue
+                
+            # Convert DataFrame to string for searching (but preserve original data)
+            df_search = df.astype(str)
+            
+            # Search each row
+            for index, row in df_search.iterrows():
+                # Check if search term appears in any column of this row
+                matches = []
+                match_values = []
+                
+                for col_name, cell_value in row.items():
+                    if search_term.lower() in str(cell_value).lower():
+                        matches.append(col_name)
+                        match_values.append(str(cell_value))
+                
+                if matches:
+                    # Get the original row data (not the string-converted version)
+                    original_row = df.iloc[index]
+                    
+                    # Create a better match description
+                    match_preview = []
+                    for i, (col, val) in enumerate(zip(matches[:3], match_values[:3])):  # Show up to 3 matches
+                        preview = val[:50] + '...' if len(val) > 50 else val
+                        match_preview.append(f"{col}: '{preview}'")
+                    
+                    match_info = "Matches in " + ", ".join(match_preview)
+                    if len(matches) > 3:
+                        match_info += f" (+{len(matches)-3} more)"
+                    
+                    # Create result entry with original data
+                    result = {
+                        'sheet': sheet_name,
+                        'data': dict(original_row),  # Use original row data
+                        'match_info': match_info,
+                        'match_count': len(matches)
+                    }
+                    results.append(result)
+    
+    except Exception as e:
+        st.error(f"Error during search: {e}")
+    
+    # Sort results by relevance (number of matches, then by sheet name)
+    results.sort(key=lambda x: (-x['match_count'], x['sheet']))
+    
+    return results
+
 def show():    
+    # Handle navigation from search results before any widgets are created
+    if 'navigate_to' in st.session_state:
+        st.session_state.selected_nav_item = st.session_state.navigate_to
+        # Set flag to hide search results after navigation
+        st.session_state.hide_search_results = True
+        # Store the current search query that triggered this navigation
+        if 'global_search' in st.session_state:
+            st.session_state.last_search_query = st.session_state.global_search
+        del st.session_state.navigate_to  # Remove the trigger
+    
     st.markdown("""
         <style>
+        /* AGGRESSIVE TOP PADDING/MARGIN REMOVAL */
+        * {
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+        }
+        
+        html, body, #root, .stApp, .stApp > div, 
+        section[data-testid="stAppViewContainer"],
+        section[data-testid="stAppViewContainer"] > div,
+        .main, .main > div, .block-container,
+        .css-1d391kg, .css-k1vhr4, .css-18e3th9,
+        .css-1y4p8pa, .css-12oz5g7, .css-1lcbmhc,
+        .element-container, .stMarkdown, .markdown-text-container {
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+        }
+        
+        /* Add just a little bit of top padding to the main content */
+        .main .block-container {
+            padding-top: 0.75rem !important;
+        }
+        
+        /* Force first elements to have no top space */
+        .main *:first-child,
+        .block-container *:first-child,
+        .element-container:first-child {
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+        }
+        
         /* Force wide layout and full width utilization */
         .appview-container .main .block-container {
             max-width: 100% !important;
             width: 100% !important;
             padding-left: 1rem !important;
             padding-right: 1rem !important;
-            padding-top: 0.5rem !important;
+            padding-top: 0 !important;
         }
         
         /* Target the main content area more specifically */
         section[data-testid="stAppViewContainer"] .main .block-container {
             max-width: none !important;
             width: 100% !important;
-            padding-top: 0.5rem !important;
+            padding-top: 0 !important;
         }
         
         /* Remove any width constraints on the main container */
@@ -134,9 +237,26 @@ def show():
             width: 100% !important;
         }
         
+        /* Hide Streamlit's default page navigation */
+        [data-testid="stSidebarNav"] {
+            display: none !important;
+        }
+        
+        .css-1d391kg .nav-link {
+            display: none !important;
+        }
+        
         .css-1d391kg .nav-link > span:first-child {
             display: none !important;
         }
+        
+        /* Hide any navigation containers */
+        [data-testid="stSidebar"] nav,
+        [data-testid="stSidebar"] .nav,
+        [data-testid="stSidebar"] .navigation {
+            display: none !important;
+        }
+        
         [data-testid="stSidebar"] .menu-title .menu-icon,
         [data-testid="stSidebar"] .menu-title svg {
             display: none !important;
@@ -156,6 +276,30 @@ def show():
         .css-1d391kg {
             width: 100% !important;
             max-width: 100vw !important;
+            padding-top: 0 !important;
+            margin-top: 0 !important;
+        }
+        
+        /* Remove all top padding and margins from main containers */
+        .main .block-container {
+            padding-top: 0 !important;
+            margin-top: 0 !important;
+        }
+        
+        section[data-testid="stAppViewContainer"] .main {
+            padding-top: 0 !important;
+            margin-top: 0 !important;
+        }
+        
+        .stApp > div {
+            padding-top: 0 !important;
+            margin-top: 0 !important;
+        }
+        
+        /* Target specific Streamlit containers */
+        .css-18e3th9, .css-k1vhr4 {
+            padding-top: 0 !important;
+            margin-top: 0 !important;
         }
         
         /* Override Streamlit's default container width limits */
@@ -716,8 +860,281 @@ def show():
     # Add main content wrapper
     st.markdown('<div class="main-content">', unsafe_allow_html=True)
     
-    st.markdown(f"<h3 style='font-weight: 600; color: #172087;'>{st.session_state.selected_sheet}</h3>", unsafe_allow_html=True)
+    # Header with search functionality
+    header_col1, header_col2 = st.columns([2, 1])
     
+    with header_col1:
+        st.markdown(f"<h3 style='font-weight: 600; color: #172087;'>{st.session_state.selected_sheet}</h3>", unsafe_allow_html=True)
+    
+    with header_col2:
+        # Enhanced search functionality with professional design
+        st.markdown("""
+            <style>
+            .search-wrapper {
+                position: relative;
+                margin-bottom: 25px;
+                max-width: 500px;
+            }
+            .search-input-wrapper {
+                position: relative;
+                display: flex;
+                align-items: center;
+            }
+            .search-input {
+                width: 100%;
+                padding: 14px 50px 14px 20px;
+                border: 2px solid #e2e8f0;
+                border-radius: 30px;
+                font-size: 15px;
+                background: white;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+                outline: none;
+            }
+            .search-input:hover {
+                border-color: #cbd5e1;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            }
+            .search-input:focus {
+                border-color: #172087;
+                box-shadow: 0 0 0 3px rgba(23, 32, 135, 0.1), 0 4px 12px rgba(0, 0, 0, 0.1);
+                transform: translateY(-1px);
+            }
+            .search-icon {
+                position: absolute;
+                right: 16px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #64748b;
+                transition: color 0.3s ease;
+                cursor: pointer;
+            }
+            .search-input:focus + .search-icon {
+                color: #172087;
+            }
+            /* Removed search container CSS - no longer needed */
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 2px;
+                background: linear-gradient(90deg, #172087, #3b82f6, #172087);
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            }
+            .search-result-item:hover::before {
+                opacity: 1;
+            }
+            .sheet-tag {
+                background: linear-gradient(135deg, #172087, #1e40af);
+                color: white;
+                padding: 4px 12px;
+                border-radius: 20px;
+                font-size: 11px;
+                font-weight: 600;
+                display: inline-block;
+                margin-right: 10px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                box-shadow: 0 2px 4px rgba(23, 32, 135, 0.3);
+            }
+            .match-preview {
+                font-size: 13px;
+                color: #475569;
+                margin: 8px 0;
+                line-height: 1.4;
+                font-weight: 400;
+            }
+            .go-button {
+                background: linear-gradient(135deg, #172087, #1e40af);
+                color: white;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                box-shadow: 0 2px 8px rgba(23, 32, 135, 0.3);
+            }
+            .go-button:hover {
+                transform: translateY(-1px) scale(1.05);
+                box-shadow: 0 4px 12px rgba(23, 32, 135, 0.4);
+            }
+            .no-results {
+                text-align: center;
+                padding: 40px 20px;
+                color: #64748b;
+                font-style: italic;
+                background: white;
+                border-radius: 10px;
+                border: 2px dashed #cbd5e1;
+            }
+            .results-count {
+                text-align: center;
+                padding: 12px;
+                font-size: 12px;
+                color: #64748b;
+                background: rgba(255, 255, 255, 0.8);
+                border-radius: 8px;
+                margin-top: 10px;
+                font-weight: 500;
+            }
+            
+            /* Custom scrollbar */
+            .search-results-container::-webkit-scrollbar {
+                width: 8px;
+            }
+            .search-results-container::-webkit-scrollbar-track {
+                background: #f1f5f9;
+                border-radius: 4px;
+                margin: 4px 0;
+            }
+            .search-results-container::-webkit-scrollbar-thumb {
+                background: linear-gradient(135deg, #172087 0%, #1e40af 100%);
+                border-radius: 4px;
+                box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+            }
+            .search-results-container::-webkit-scrollbar-thumb:hover {
+                background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+            }
+            
+            /* Firefox scrollbar */
+            .search-results-container {
+                scrollbar-color: #172087 #f1f5f9;
+                scrollbar-width: thin;
+            }
+            
+            /* Table body scrollbar */
+            .table-body::-webkit-scrollbar {
+                width: 6px;
+            }
+            .table-body::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            .table-body::-webkit-scrollbar-thumb {
+                background: #cbd5e1;
+                border-radius: 3px;
+            }
+            .table-body::-webkit-scrollbar-thumb:hover {
+                background: #94a3b8;
+            }
+            </style>
+        """, unsafe_allow_html=True)
+        
+        # Create professional search input with SVG icon
+        st.markdown('<div class="search-wrapper">', unsafe_allow_html=True)
+        
+        # Custom HTML input with professional search icon
+        st.markdown("""
+            <div class="search-input-wrapper">
+                <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 21L16.5 16.5M19 11C19 15.4183 15.4183 19 11 19C6.58172 19 3 15.4183 3 11C3 6.58172 6.58172 3 11 3C15.4183 3 19 6.58172 19 11Z" 
+                          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        # Streamlit input (positioned to overlay the custom input)
+        search_query = st.text_input(
+            "Search", 
+            placeholder="Search across all data...", 
+            key="global_search",
+            label_visibility="collapsed"
+        )
+        
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+        # Reset hide flag if user is actively searching (new query)
+        if search_query and st.session_state.get('hide_search_results', False):
+            # Check if this is a new search (different from what caused the hide)
+            if 'last_search_query' not in st.session_state or st.session_state.last_search_query != search_query:
+                st.session_state.hide_search_results = False
+        
+        # Store current search query for comparison
+        if search_query:
+            st.session_state.last_search_query = search_query
+        
+        # Display search results directly without container
+        # Check if we should hide results due to recent navigation
+        show_results = search_query and not st.session_state.get('hide_search_results', False)
+        
+        if show_results:
+            search_results = perform_global_search(search_query)
+            
+            if search_results:
+                st.markdown("### Search Results")
+                
+                # Display results in a simple format
+                for i, result in enumerate(search_results[:15]):
+                    sheet_name = result['sheet']
+                    row_data = result['data']
+                    match_info = result['match_info']
+                    
+                    # Build match details
+                    match_details = []
+                    for key, value in row_data.items():
+                        if value and str(value).strip() and key != 'No':
+                            clean_value = str(value).strip()
+                            truncated = clean_value[:50] + ('...' if len(clean_value) > 50 else '')
+                            match_details.append(f"**{key}:** {truncated}")
+                            if len(match_details) >= 3:
+                                break
+                    
+                    match_text = " • ".join(match_details) if match_details else "No details available"
+                    
+                    # Create result item using container
+                    with st.container():
+                        col1, col2 = st.columns([4, 1])
+                        
+                        with col1:
+                            # Sheet tag
+                            st.markdown(f"""
+                                <div style="background: linear-gradient(135deg, #172087 0%, #1e40af 100%); 
+                                           color: white; padding: 4px 10px; border-radius: 16px; 
+                                           font-size: 11px; font-weight: 600; text-transform: uppercase; 
+                                           letter-spacing: 0.5px; margin-bottom: 8px; display: inline-block;
+                                           box-shadow: 0 2px 4px rgba(23, 32, 135, 0.3);">
+                                    {sheet_name}
+                                </div>
+                            """, unsafe_allow_html=True)
+                            
+                            # Match preview
+                            st.markdown(f"""
+                                <div style="color: #4a5568; font-size: 12px; line-height: 1.4; 
+                                           margin-top: 5px;">
+                                    {match_text}
+                                </div>
+                            """, unsafe_allow_html=True)
+                        
+                        with col2:
+                            if st.button("Go", key=f"nav_search_{i}", help=f"Go to {sheet_name}"):
+                                # Use a different session state key to trigger navigation
+                                st.session_state.navigate_to = sheet_name
+                                st.rerun()
+                        
+                        # Add separator between items
+                        st.markdown("<hr style='margin: 15px 0; border: none; height: 1px; background: #e2e8f0;'>", unsafe_allow_html=True)
+                
+                # Results count
+                st.markdown(f"""
+                    <div style="background: #f8fafc; color: #64748b; font-size: 11px; 
+                               padding: 8px 12px; text-align: center; border-radius: 6px; 
+                               margin-top: 8px; border: 1px solid #e2e8f0;">
+                        Found {len(search_results)} result{"s" if len(search_results) != 1 else ""}
+                    </div>
+                """, unsafe_allow_html=True)
+            else:
+                # No results found
+                st.markdown("""
+                    <div style="text-align: center; color: #64748b; padding: 30px 20px;">
+                        <div style="font-size: 14px; margin-bottom: 5px;">🔍 No results found</div>
+                        <div style="font-size: 12px; opacity: 0.7;">Try different search terms</div>
+                    </div>
+                """, unsafe_allow_html=True)
 
     
     if selected == "Dashboard":
@@ -736,6 +1153,8 @@ def show():
         if selected == "Client":
             columns = [
                 "No",
+                "Old Client ID",
+                "Client ID",
                 "Date Created (MM/DD/YYYY)",
                 "Status of Client",
                 "Specify Level 1.1 and 1.2",
@@ -754,6 +1173,14 @@ def show():
                 "Suffix",
                 "Civil Status",
                 "Sex",
+                "Birthdate (MM/DD/YYYY)",
+                "Birth Year",
+                "Citizenship",
+                "DTI Konek ID",
+                "Philippine Identification System",
+                "Region",
+                "Province",
+                "City/Municipality",
                 "Barangay",
                 "District",
                 "Zip Code",
