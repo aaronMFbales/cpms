@@ -139,6 +139,23 @@ def show():
     p:contains("created by") {
         display: none !important;
     }
+    
+    /* Hide Streamlit's "Hosted with Streamlit" badge */
+    .stAppDeployButton,
+    div[data-testid="stAppDeployButton"],
+    a[href*="streamlit.io"],
+    div:contains("Hosted with Streamlit"),
+    [data-testid="stBottom"],
+    .st-emotion-cache-h4xjwg {
+        display: none !important;
+    }
+    
+    /* Hide any floating badges or promotional content */
+    .stAppViewBlockContainer > div:last-child,
+    div[class*="floating"],
+    div[class*="badge"] {
+        display: none !important;
+    }
     </style>
     """
     st.markdown(hide_st_style, unsafe_allow_html=True)

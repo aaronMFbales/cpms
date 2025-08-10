@@ -799,7 +799,25 @@ def show():
                 color: rgba(255,255,255,0.7);
                 font-size: 11px;
                 text-transform: capitalize;
-                    }
+            }
+            
+            /* Hide Streamlit's "Hosted with Streamlit" badge and promotional content */
+            .stAppDeployButton,
+            div[data-testid="stAppDeployButton"],
+            a[href*="streamlit.io"],
+            div:contains("Hosted with Streamlit"),
+            [data-testid="stBottom"],
+            .st-emotion-cache-h4xjwg,
+            div[class*="floating"],
+            div[class*="badge"],
+            .stAppViewBlockContainer > div:last-child:contains("Streamlit") {
+                display: none !important;
+            }
+            
+            /* Hide any footer elements */
+            footer, .stAppViewContainer footer {
+                display: none !important;
+            }
             </style>
         """, unsafe_allow_html=True)
         
