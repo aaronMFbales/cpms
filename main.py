@@ -4,6 +4,12 @@ import time
 import json
 import os
 
+# Render compatibility
+if os.getenv('RENDER'):
+    import render_config
+    for key, value in render_config.config.items():
+        st._config.set_option(key, value)
+
 # Configure the page layout at the very beginning
 st.set_page_config(
     page_title="DTI CPMS",
