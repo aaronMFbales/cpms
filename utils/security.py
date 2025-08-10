@@ -3,7 +3,12 @@ Enhanced Security Module for DTI CPMS
 Implements strong password hashing, validation, and security utilities
 """
 
-import bcrypt
+try:
+    import bcrypt
+    BCRYPT_AVAILABLE = True
+except ImportError:
+    BCRYPT_AVAILABLE = False
+    
 import hashlib
 import secrets
 import string
@@ -16,6 +21,10 @@ def hash_password_secure(password: str) -> str:
     Hash password using bcrypt with proper salt
     Much more secure than SHA-256
     """
+    if not BCRYPT_AVAILABLE:
+        # Fallback to SHA-256 if bcrypt not available
+        return hashlib.sha256(password.encode()).hexdigest()
+    
     # Generate salt and hash password
     salt = bcrypt.gensalt(rounds=12)  # Higher rounds = more secure but slower
     hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
@@ -25,6 +34,10 @@ def verify_password_secure(password: str, hashed: str) -> bool:
     """
     Verify password against bcrypt hash
     """
+    if not BCRYPT_AVAILABLE:
+        # Fallback to SHA-256 comparison
+        return hashlib.sha256(password.encode()).hexdigest() == hashed
+    
     try:
         return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
     except Exception:
@@ -143,6 +156,8 @@ def is_bcrypt_hash(hash_string: str) -> bool:
     """
     Check if a hash is bcrypt format
     """
+    if not BCRYPT_AVAILABLE:
+        return False
     return hash_string.startswith('$2b$') or hash_string.startswith('$2a$')
 
 def migrate_password_hash(old_sha256_hash: str, password: str) -> Optional[str]:

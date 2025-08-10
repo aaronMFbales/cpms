@@ -55,7 +55,7 @@ class InputValidator:
         return text
     
     @staticmethod
-    def validate_input(text: str, input_type: str) -> tuple[bool, str]:
+    def validate_input(text: str, input_type: str) -> tuple:
         """
         Validate input against predefined patterns
         Returns (is_valid, error_message)
@@ -82,7 +82,7 @@ class InputValidator:
         return True, ""
     
     @staticmethod
-    def validate_form_data(form_data: Dict[str, Any], field_types: Dict[str, str]) -> tuple[bool, List[str]]:
+    def validate_form_data(form_data: Dict[str, Any], field_types: Dict[str, str]) -> tuple:
         """
         Validate entire form data
         Returns (is_valid, list_of_errors)
@@ -113,7 +113,7 @@ class FileUploadValidator:
     MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
     
     @staticmethod
-    def validate_file_upload(uploaded_file) -> tuple[bool, str]:
+    def validate_file_upload(uploaded_file) -> tuple:
         """
         Validate uploaded file for security
         """
@@ -166,12 +166,12 @@ class CPMSFormValidator:
     }
     
     @staticmethod
-    def validate_business_owner_form(form_data: Dict[str, Any]) -> tuple[bool, List[str]]:
+    def validate_business_owner_form(form_data: Dict[str, Any]) -> tuple:
         """Validate Business Owner form specifically"""
         return InputValidator.validate_form_data(form_data, CPMSFormValidator.BUSINESS_OWNER_FIELDS)
     
     @staticmethod
-    def validate_client_form(form_data: Dict[str, Any]) -> tuple[bool, List[str]]:
+    def validate_client_form(form_data: Dict[str, Any]) -> tuple:
         """Validate Client form specifically"""
         return InputValidator.validate_form_data(form_data, CPMSFormValidator.CLIENT_FIELDS)
 
