@@ -139,8 +139,48 @@ def create_user_excel_download():
         ]
         # Check if Excel engines are available
         if not OPENPYXL_AVAILABLE and not XLSXWRITER_AVAILABLE:
-            st.error("Excel export requires openpyxl or xlsxwriter package. Please contact system administrator.")
-            return None, False
+            # Fallback: Create CSV zip file instead
+            import zipfile
+            zip_buffer = io.BytesIO()
+            
+            with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+                has_data = False
+                
+                for sheet_name in sheet_names:
+                    data, columns = data_manager.load_user_data(username, sheet_name)
+                    
+                    if data and columns:
+                        has_data = True
+                        # Create DataFrame and convert to CSV
+                        df = pd.DataFrame(data, columns=columns)
+                        csv_buffer = io.StringIO()
+                        df.to_csv(csv_buffer, index=False)
+                        
+                        # Add CSV to zip
+                        zip_file.writestr(f"{sheet_name}.csv", csv_buffer.getvalue())
+                    else:
+                        # Create empty CSV with headers if available
+                        if columns:
+                            empty_df = pd.DataFrame(columns=columns)
+                            csv_buffer = io.StringIO()
+                            empty_df.to_csv(csv_buffer, index=False)
+                            zip_file.writestr(f"{sheet_name}.csv", csv_buffer.getvalue())
+                
+                # Add summary file
+                summary_data = {
+                    'Export Date': [datetime.now().strftime('%Y-%m-%d %H:%M:%S')],
+                    'Username': [username],
+                    'Full Name': [user_full_name or 'Not provided'],
+                    'Total Sheets': [len(sheet_names)],
+                    'Format': ['CSV (Excel packages unavailable)']
+                }
+                summary_df = pd.DataFrame(summary_data)
+                csv_buffer = io.StringIO()
+                summary_df.to_csv(csv_buffer, index=False)
+                zip_file.writestr("Export_Summary.csv", csv_buffer.getvalue())
+            
+            zip_buffer.seek(0)
+            return zip_buffer.getvalue(), has_data, 'zip'
         
         # Use available engine
         engine = 'openpyxl' if OPENPYXL_AVAILABLE else 'xlsxwriter'
@@ -164,11 +204,11 @@ def create_user_excel_download():
                 summary_df.to_excel(writer, sheet_name='Summary', index=False)
         
         output.seek(0)
-        return output.getvalue(), has_data
+        return output.getvalue(), has_data, 'excel'
         
     except Exception as e:
         st.error(f"Error creating Excel file: {str(e)}")
-        return None, False
+        return None, False, None
 
 def save_current_data(selected):
         """Save current data for the selected sheet"""
@@ -1067,18 +1107,30 @@ def show():
             st.info(f"Exporting personal data for: **{user_full_name or username}**")
             
             # Create user-specific Excel file
-            excel_data, has_data = create_user_excel_download()
+            result = create_user_excel_download()
             
-            if excel_data:
+            if result[0]:  # If data was created
+                file_data, has_data, file_format = result
+                
                 # Get current date for filename
                 current_date = datetime.now().strftime("%Y%m%d_%H%M%S")
-                download_filename = f"CPMS_Data_{username}_{current_date}.xlsx"
+                
+                if file_format == 'zip':
+                    download_filename = f"CPMS_Data_{username}_{current_date}.zip"
+                    mime_type = "application/zip"
+                    file_type_label = "Download My CPMS Data (CSV Format)"
+                    format_note = "Excel packages unavailable - exported as CSV files in ZIP"
+                else:
+                    download_filename = f"CPMS_Data_{username}_{current_date}.xlsx"
+                    mime_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    file_type_label = "Download My CPMS Data"
+                    format_note = "Excel format"
                 
                 st.download_button(
-                    label="Download My CPMS Data",
-                    data=excel_data,
+                    label=file_type_label,
+                    data=file_data,
                     file_name=download_filename,
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    mime=mime_type,
                     use_container_width=True,
                     type="primary"
                 )
@@ -1086,12 +1138,12 @@ def show():
                 # Show data status
                 if has_data:
                     st.success("Your data is ready for download!")
-                    st.caption(f"File includes all your personal CPMS records")
+                    st.caption(f"File includes all your personal CPMS records ({format_note})")
                 else:
                     st.info("No data records found. File includes summary information.")
-                    st.caption("Add some data first to include records in the export")
+                    st.caption(f"Add some data first to include records in the export ({format_note})")
             else:
-                st.error("Unable to create Excel file")
+                st.error("Unable to create data file")
 
         st.session_state.selected_sheet = selected
 
