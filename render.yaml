@@ -2,9 +2,11 @@ services:
   - type: web
     name: dti-cpms
     runtime: python3
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install --upgrade pip && pip install -r requirements-render.txt
     startCommand: streamlit run main.py --server.port $PORT --server.address 0.0.0.0 --server.headless true --server.enableCORS false
-    envVars:
+    env:
+      - key: PYTHON_VERSION
+        value: 3.11.9
       - key: PYTHONUNBUFFERED
         value: 1
       - key: STREAMLIT_SERVER_HEADLESS
