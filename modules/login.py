@@ -44,7 +44,7 @@ def save_users(users):
         json.dump(users, f, indent=2)
 
 def show():
-    st.set_page_config(page_title="CPMS Login", page_icon="🛡️", layout="centered")
+    st.set_page_config(page_title="CPMS Login", layout="centered")
 
     # Hide Streamlit elements and style the button
     hide_st_style = """

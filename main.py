@@ -6,10 +6,9 @@ import os
 
 # Configure the page layout at the very beginning
 st.set_page_config(
-    page_title="DTI CPMS", 
-    page_icon="🏛️",
+    page_title="DTI CPMS",
     layout="wide",
-    initial_sidebar_state="auto"
+    initial_sidebar_state="expanded"
 )
 
 def main():

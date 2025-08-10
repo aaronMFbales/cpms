@@ -621,7 +621,7 @@ with st.sidebar:
     
     # Admin Configuration Info
     st.markdown("---")
-    st.markdown("### 🔐 Admin Configuration")
+    st.markdown("### Admin Configuration")
     
     admin_info = get_admin_credentials_display()
     
@@ -633,9 +633,9 @@ with st.sidebar:
         st.markdown(f"**Name:** {admin_info['name']}")
         st.markdown(f"**Password:** {admin_info['password']}")
     
-    st.info("💡 Admin credentials are stored securely in Streamlit secrets")
+    st.info("Admin credentials are stored securely in Streamlit secrets")
     
-    if st.button("🔄 Reset Admin Account", help="This will recreate the admin account with current settings"):
+    if st.button("Reset Admin Account", help="This will recreate the admin account with current settings"):
         try:
             # Remove existing admin and recreate
             users = load_users()
@@ -648,12 +648,12 @@ with st.sidebar:
             created, message = create_admin_if_not_exists(users)
             if created:
                 save_users(users)
-                st.success("✅ Admin account reset successfully!")
+                st.success("Admin account reset successfully!")
                 st.rerun()
             else:
-                st.warning("⚠️ Could not reset admin account")
+                st.warning("Could not reset admin account")
         except Exception as e:
-            st.error(f"❌ Error resetting admin account: {str(e)}")
+            st.error(f"Error resetting admin account: {str(e)}")
     
     st.markdown("---")
     

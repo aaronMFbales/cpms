@@ -76,7 +76,7 @@ def test_location_hierarchy():
     print(f"  Barangay: {sample_barangay}")
     print(f"  Puroks: {PHILIPPINE_LOCATIONS[sample_region][sample_province][sample_city][sample_barangay]}")
     
-    print("\n✅ All tests completed successfully!")
+    print("\nAll tests completed successfully!")
 
 if __name__ == "__main__":
     test_location_hierarchy() 

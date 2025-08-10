@@ -6,6 +6,7 @@ import os
 from datetime import datetime
 from utils.philippine_locations import create_location_widgets
 from utils.psic_handler import create_psic_widgets
+from utils.data_manager import data_manager
 
 def save_targets_to_file(targets):
     """Save targets to a persistent file"""
@@ -46,58 +47,108 @@ def load_targets_from_file():
         return default_targets
 
 def save_data_to_file(sheet_name, data, columns):
-        """Save data to Excel file with multiple sheets"""
-        data_dir = "data"
-        if not os.path.exists(data_dir):
-            os.makedirs(data_dir)
+    """Save data to user-specific file"""
+    try:
+        # Get current user from session
+        auth_cookie = st.session_state.get("auth_cookie", {})
+        username = auth_cookie.get("username", "anonymous")
         
-        excel_file = os.path.join(data_dir, "cpms_data.xlsx")
+        # Use data manager for user-specific storage
+        success = data_manager.save_user_data(username, sheet_name, data, columns)
         
-        # Convert data to DataFrame
-        df = pd.DataFrame(data, columns=columns)
+        if success:
+            st.success(f"Data saved to your personal {sheet_name} records!")
+        return success
         
-        # Load existing Excel file if it exists, or create new one
-        try:
-            with pd.ExcelWriter(excel_file, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
-                df.to_excel(writer, sheet_name=sheet_name, index=False)
-        except FileNotFoundError:
-            # If file doesn't exist, create it
-            with pd.ExcelWriter(excel_file, engine='openpyxl') as writer:
-                df.to_excel(writer, sheet_name=sheet_name, index=False)
+    except Exception as e:
+        st.error(f"Error saving data: {str(e)}")
+        return False
 
 def load_data_from_file(sheet_name):
-        """Load data from Excel file"""
-        data_dir = "data"
-        excel_file = os.path.join(data_dir, "cpms_data.xlsx")
+    """Load data from user-specific file"""
+    try:
+        # Get current user from session
+        auth_cookie = st.session_state.get("auth_cookie", {})
+        username = auth_cookie.get("username", "anonymous")
         
-        if os.path.exists(excel_file):
-            try:
-                # Read the specific sheet
-                df = pd.read_excel(excel_file, sheet_name=sheet_name)
-                return df.values.tolist(), df.columns.tolist()
-            except:
-                return [], []
+        # Use data manager to load user-specific data
+        data, columns = data_manager.load_user_data(username, sheet_name)
+        
+        return data, columns
+        
+    except Exception as e:
+        st.error(f"Error loading data: {str(e)}")
         return [], []
 
 def load_all_data_from_file():
-        """Load all data from all sheets in the Excel file"""
-        data_dir = "data"
-        excel_file = os.path.join(data_dir, "cpms_data.xlsx")
-        all_data = {}
+    """Load all user-specific data from all sheets"""
+    try:
+        # Get current user from session
+        auth_cookie = st.session_state.get("auth_cookie", {})
+        username = auth_cookie.get("username", "anonymous")
         
-        if os.path.exists(excel_file):
-            try:
-                # Read all sheets
-                excel_data = pd.read_excel(excel_file, sheet_name=None)
-                
-                for sheet_name, df in excel_data.items():
-                    # Convert to list of dictionaries for easier access
-                    all_data[sheet_name] = df.to_dict('records')
-                    
-            except Exception as e:
-                print(f"Error loading data: {e}")
-                
+        all_data = {}
+        sheet_names = [
+            "Business Owner", "Business Profile", "Client", "Business Registration",
+            "Business Financial Structure", "Market Import", "Product Service Lines",
+            "Employment Statistics", "Assistance", "Market Export", "Jobs Generated"
+        ]
+        
+        for sheet_name in sheet_names:
+            data, columns = data_manager.load_user_data(username, sheet_name)
+            if data and columns:
+                df = pd.DataFrame(data, columns=columns)
+                all_data[sheet_name] = df.to_dict('records')
+        
         return all_data
+        
+    except Exception as e:
+        st.error(f"Error loading data: {str(e)}")
+        return {}
+
+def create_user_excel_download():
+    """Create Excel file for current user's data"""
+    try:
+        # Get current user from session
+        auth_cookie = st.session_state.get("auth_cookie", {})
+        username = auth_cookie.get("username", "anonymous")
+        user_full_name = f"{auth_cookie.get('first_name', '')} {auth_cookie.get('last_name', '')}".strip()
+        
+        # Create Excel file in memory
+        import io
+        output = io.BytesIO()
+        
+        sheet_names = [
+            "Business Owner", "Business Profile", "Client", "Business Registration",
+            "Business Financial Structure", "Market Import", "Product Service Lines", 
+            "Employment Statistics", "Assistance", "Market Export", "Jobs Generated"
+        ]
+        
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            has_data = False
+            
+            for sheet_name in sheet_names:
+                data, columns = data_manager.load_user_data(username, sheet_name)
+                
+                if data and columns:
+                    df = pd.DataFrame(data, columns=columns)
+                    df.to_excel(writer, sheet_name=sheet_name, index=False)
+                    has_data = True
+            
+            if not has_data:
+                # Create a summary sheet if no data exists
+                summary_df = pd.DataFrame({
+                    'Info': ['User', 'Export Date', 'Status'],
+                    'Details': [user_full_name or username, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'No data records found']
+                })
+                summary_df.to_excel(writer, sheet_name='Summary', index=False)
+        
+        output.seek(0)
+        return output.getvalue(), has_data
+        
+    except Exception as e:
+        st.error(f"Error creating Excel file: {str(e)}")
+        return None, False
 
 def save_current_data(selected):
         """Save current data for the selected sheet"""
@@ -442,7 +493,7 @@ def show():
                 allLabels.forEach(label => {
                     if (label.textContent.includes('*')) {
                         const text = label.innerHTML;
-                        label.innerHTML = text.replace(/\*/g, '<span style="color: #ff0000 !important; font-weight: bold !important;">*</span>');
+                        label.innerHTML = text.replace(/\\*/g, '<span style="color: #ff0000 !important; font-weight: bold !important;">*</span>');
                     }
                 });
                 
@@ -451,7 +502,7 @@ def show():
                 inputLabels.forEach(label => {
                     if (label.textContent.includes('*')) {
                         const text = label.innerHTML;
-                        label.innerHTML = text.replace(/\*/g, '<span style="color: #ff0000 !important; font-weight: bold !important; font-size: 1.1em !important;">*</span>');
+                        label.innerHTML = text.replace(/\\*/g, '<span style="color: #ff0000 !important; font-weight: bold !important; font-size: 1.1em !important;">*</span>');
                     }
                 });
                 
@@ -474,7 +525,7 @@ def show():
                 textNodes.forEach(textNode => {
                     if (textNode.parentElement && textNode.textContent.includes('*')) {
                         const parent = textNode.parentElement;
-                        parent.innerHTML = parent.innerHTML.replace(/\*/g, '<span style="color: #ff0000 !important; font-weight: bold !important;">*</span>');
+                        parent.innerHTML = parent.innerHTML.replace(/\\*/g, '<span style="color: #ff0000 !important; font-weight: bold !important;">*</span>');
                     }
                 });
             }
@@ -910,22 +961,25 @@ def show():
             
             # Download Excel File Section
             st.divider()
-            st.subheader("Export Data")
+            st.subheader("Export Your Data")
             
-            # Download button for Excel file
-            data_dir = "data"
-            excel_file = os.path.join(data_dir, "cpms_data.xlsx")
+            # Get current user info
+            auth_cookie = st.session_state.get("auth_cookie", {})
+            username = auth_cookie.get("username", "anonymous")
+            user_full_name = f"{auth_cookie.get('first_name', '')} {auth_cookie.get('last_name', '')}".strip()
             
-            if os.path.exists(excel_file):
-                with open(excel_file, "rb") as file:
-                    excel_data = file.read()
-                
+            st.info(f"Exporting personal data for: **{user_full_name or username}**")
+            
+            # Create user-specific Excel file
+            excel_data, has_data = create_user_excel_download()
+            
+            if excel_data:
                 # Get current date for filename
                 current_date = datetime.now().strftime("%Y%m%d_%H%M%S")
-                download_filename = f"CPMS_Data_Export_{current_date}.xlsx"
+                download_filename = f"CPMS_Data_{username}_{current_date}.xlsx"
                 
                 st.download_button(
-                    label="Save Excel File",
+                    label="Download My CPMS Data",
                     data=excel_data,
                     file_name=download_filename,
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -933,20 +987,15 @@ def show():
                     type="primary"
                 )
                 
-                # Show file info
-                try:
-                    file_size = os.path.getsize(excel_file)
-                    file_size_mb = file_size / (1024 * 1024)
-                    st.caption(f"File size: {file_size_mb:.2f} MB")
-                except:
-                    pass
+                # Show data status
+                if has_data:
+                    st.success("Your data is ready for download!")
+                    st.caption(f"File includes all your personal CPMS records")
+                else:
+                    st.info("No data records found. File includes summary information.")
+                    st.caption("Add some data first to include records in the export")
             else:
-                st.info("No data file available for download")
-                st.caption("Add some data first to generate the Excel file")
-        
-
-        
-
+                st.error("Unable to create Excel file")
 
         st.session_state.selected_sheet = selected
 
@@ -1244,7 +1293,7 @@ def show():
                     # No results found
                     st.markdown("""
                         <div style="text-align: center; color: #64748b; padding: 30px 20px;">
-                            <div style="font-size: 14px; margin-bottom: 5px;">🔍 No results found</div>
+                            <div style="font-size: 14px; margin-bottom: 5px;">No results found</div>
                             <div style="font-size: 12px; opacity: 0.7;">Try different search terms</div>
                         </div>
                     """, unsafe_allow_html=True)
