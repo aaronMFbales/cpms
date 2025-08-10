@@ -889,6 +889,42 @@ def show():
             # Display user info using native components
             st.write(f"**Name:** {user_name} {user_last}")
             st.write(f"**Role:** {user_role.title()}")
+            
+            # Download Excel File Section
+            st.divider()
+            st.subheader("Export Data")
+            
+            # Download button for Excel file
+            data_dir = "data"
+            excel_file = os.path.join(data_dir, "cpms_data.xlsx")
+            
+            if os.path.exists(excel_file):
+                with open(excel_file, "rb") as file:
+                    excel_data = file.read()
+                
+                # Get current date for filename
+                current_date = datetime.now().strftime("%Y%m%d_%H%M%S")
+                download_filename = f"CPMS_Data_Export_{current_date}.xlsx"
+                
+                st.download_button(
+                    label="Save Excel File",
+                    data=excel_data,
+                    file_name=download_filename,
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    use_container_width=True,
+                    type="primary"
+                )
+                
+                # Show file info
+                try:
+                    file_size = os.path.getsize(excel_file)
+                    file_size_mb = file_size / (1024 * 1024)
+                    st.caption(f"File size: {file_size_mb:.2f} MB")
+                except:
+                    pass
+            else:
+                st.info("No data file available for download")
+                st.caption("Add some data first to generate the Excel file")
         
 
         
@@ -4252,8 +4288,38 @@ def show():
             data = st.session_state[table_key]
             columns = st.session_state[col_key]
             
+            # Debug: Check for column mismatch and fix it
+            if data and len(data) > 0:
+                # Check if any row has different column count than expected
+                corrected_data = []
+                for row in data:
+                    if len(row) != len(columns):
+                        # Fix row length to match column count
+                        if len(row) > len(columns):
+                            # Truncate extra columns
+                            corrected_row = row[:len(columns)]
+                        else:
+                            # Pad missing columns with empty strings
+                            corrected_row = row + [""] * (len(columns) - len(row))
+                        corrected_data.append(corrected_row)
+                    else:
+                        corrected_data.append(row)
+                # Update session state with corrected data
+                st.session_state[table_key] = corrected_data
+                data = corrected_data
+            
             # Convert to DataFrame for editing
-            df = pd.DataFrame(data, columns=columns)
+            try:
+                df = pd.DataFrame(data, columns=columns)
+            except ValueError as e:
+                # If there's still a mismatch, reset the data
+                if "columns passed, passed data had" in str(e):
+                    st.warning(f"Data structure mismatch detected for {selected}. Resetting data...")
+                    st.session_state[table_key] = []
+                    data = []
+                    df = pd.DataFrame(data, columns=columns)
+                else:
+                    raise e
             
             # Build column config with appropriate types
             column_config = {}
