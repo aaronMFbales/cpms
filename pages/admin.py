@@ -107,9 +107,9 @@ def format_timestamp(timestamp):
 def send_approval_notification(user_data):
     """Send email notification when user is approved"""
     try:
-        # Email configuration
-        sender_email = "aaronmfbales@gmail.com"
-        sender_password = "glby umrm cydt dlfp"
+        # Email configuration - using Streamlit secrets
+        sender_email = st.secrets.get("email", {}).get("sender_email", "aaronmfbales@gmail.com")
+        sender_password = st.secrets.get("email", {}).get("sender_password", "")
         receiver_email = user_data.get('email', '')
         
         if not receiver_email:
@@ -161,9 +161,9 @@ def send_approval_notification(user_data):
 def send_rejection_notification(user_data):
     """Send email notification when user is rejected"""
     try:
-        # Email configuration
-        sender_email = "aaronmfbales@gmail.com"
-        sender_password = "glby umrm cydt dlfp"
+        # Email configuration - using Streamlit secrets
+        sender_email = st.secrets.get("email", {}).get("sender_email", "aaronmfbales@gmail.com")
+        sender_password = st.secrets.get("email", {}).get("sender_password", "")
         receiver_email = user_data.get('email', '')
         
         if not receiver_email:

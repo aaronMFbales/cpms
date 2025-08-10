@@ -40,10 +40,10 @@ def save_users(users):
 def send_registration_notification(user_data):
     """Send email notification to admin when a new user registers"""
     try:
-        # Email configuration
-        sender_email = "aaronmfbales@gmail.com"
-        sender_password = "glby umrm cydt dlfp"
-        receiver_email = "aaronmfbales@gmail.com"
+        # Email configuration - using Streamlit secrets
+        sender_email = st.secrets.get("email", {}).get("sender_email", "aaronmfbales@gmail.com")
+        sender_password = st.secrets.get("email", {}).get("sender_password", "")
+        receiver_email = st.secrets.get("email", {}).get("sender_email", "aaronmfbales@gmail.com")
         
         # Create message
         msg = MIMEMultipart()
