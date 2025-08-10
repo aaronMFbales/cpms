@@ -942,33 +942,71 @@ def show():
             div:contains("Hosted with Streamlit"),
             .css-18ni7ap,
             .css-hxt7ib,
-            .e8zbici2 {
+            .e8zbici2,
+            .stAppDeployButton,
+            div[data-testid="stAppDeployButton"],
+            .css-1dp5vir,
+            .css-hi6a2p,
+            .css-1kyxreq,
+            [class*="viewerBadge"],
+            [class*="deployButton"],
+            [data-testid*="deploy"],
+            [data-testid*="badge"],
+            div[class*="Badge"],
+            .stDeployButton,
+            .css-1vbd788,
+            .css-1d391kg,
+            .st-emotion-cache-1vbd788,
+            .st-emotion-cache-1d391kg {
                 display: none !important;
                 visibility: hidden !important;
                 opacity: 0 !important;
+                position: absolute !important;
+                left: -9999px !important;
+                width: 0 !important;
+                height: 0 !important;
+                overflow: hidden !important;
             }
             </style>
             
             <script>
-            // Remove Streamlit branding dynamically
+            // Remove Streamlit branding dynamically - ULTRA AGGRESSIVE
             function hideStreamlitBranding() {
-                // Hide footer badges
-                const badges = document.querySelectorAll('div[class*="viewerBadge"], div[data-testid="stStatusWidget"], div[class*="StatusWidget"]');
-                badges.forEach(badge => {
-                    badge.style.display = 'none';
-                    badge.style.visibility = 'hidden';
-                    badge.remove();
+                // Target all possible badge selectors
+                const selectors = [
+                    'div[class*="viewerBadge"]',
+                    'div[data-testid="stStatusWidget"]', 
+                    'div[class*="StatusWidget"]',
+                    '.stAppDeployButton',
+                    'div[data-testid="stAppDeployButton"]',
+                    '[class*="deployButton"]',
+                    '[data-testid*="deploy"]',
+                    '[data-testid*="badge"]',
+                    'div[class*="Badge"]',
+                    '.stDeployButton',
+                    '.css-1vbd788',
+                    '.css-1d391kg',
+                    '.st-emotion-cache-1vbd788',
+                    '.st-emotion-cache-1d391kg',
+                    'a[href*="streamlit.io"]',
+                    '[class*="viewerBadge"]'
+                ];
+                
+                selectors.forEach(selector => {
+                    const elements = document.querySelectorAll(selector);
+                    elements.forEach(el => {
+                        el.style.display = 'none !important';
+                        el.style.visibility = 'hidden !important';
+                        el.style.opacity = '0 !important';
+                        el.style.position = 'absolute !important';
+                        el.style.left = '-9999px !important';
+                        el.style.width = '0 !important';
+                        el.style.height = '0 !important';
+                        el.remove();
+                    });
                 });
                 
-                // Hide any links to streamlit.io
-                const streamlitLinks = document.querySelectorAll('a[href*="streamlit.io"]');
-                streamlitLinks.forEach(link => {
-                    link.style.display = 'none';
-                    link.style.visibility = 'hidden';
-                    link.remove();
-                });
-                
-                // Hide any text containing "Streamlit"
+                // Remove any element containing Streamlit text
                 const walker = document.createTreeWalker(
                     document.body,
                     NodeFilter.SHOW_TEXT,
@@ -979,26 +1017,51 @@ def show():
                 const textNodes = [];
                 let node;
                 while (node = walker.nextNode()) {
-                    if (node.textContent.includes('Made with Streamlit') || 
+                    if (node.textContent && (
+                        node.textContent.includes('Made with Streamlit') || 
                         node.textContent.includes('Hosted with Streamlit') ||
-                        node.textContent.includes('streamlit.io')) {
+                        node.textContent.includes('streamlit.io') ||
+                        node.textContent.includes('Deploy') ||
+                        node.textContent.toLowerCase().includes('streamlit')
+                    )) {
                         textNodes.push(node);
                     }
                 }
                 
                 textNodes.forEach(textNode => {
                     if (textNode.parentElement) {
-                        textNode.parentElement.style.display = 'none';
+                        textNode.parentElement.style.display = 'none !important';
                         textNode.parentElement.remove();
+                    }
+                });
+                
+                // Check for bottom-right positioned elements (common for badges)
+                document.querySelectorAll('*').forEach(el => {
+                    const style = window.getComputedStyle(el);
+                    if (style.position === 'fixed' && 
+                        (style.bottom === '16px' || style.bottom === '1rem' || 
+                         style.right === '16px' || style.right === '1rem')) {
+                        if (el.textContent && el.textContent.toLowerCase().includes('streamlit')) {
+                            el.style.display = 'none !important';
+                            el.remove();
+                        }
                     }
                 });
             }
             
-            // Run on page load and periodically
+            // Run on page load and very frequently
             document.addEventListener('DOMContentLoaded', hideStreamlitBranding);
+            window.addEventListener('load', hideStreamlitBranding);
+            setTimeout(hideStreamlitBranding, 100);
+            setTimeout(hideStreamlitBranding, 500);
             setTimeout(hideStreamlitBranding, 1000);
+            setTimeout(hideStreamlitBranding, 2000);
             setTimeout(hideStreamlitBranding, 3000);
             setTimeout(hideStreamlitBranding, 5000);
+            setTimeout(hideStreamlitBranding, 10000);
+            
+            // Run every 2 seconds continuously
+            setInterval(hideStreamlitBranding, 2000);
             
             // Create observer to watch for new elements
             const observer = new MutationObserver(function(mutations) {
