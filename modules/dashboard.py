@@ -889,7 +889,83 @@ def show():
             footer, .stAppViewContainer footer {
                 display: none !important;
             }
+            
+            /* Hide Streamlit footer and hosted badge */
+            div[class*="viewerBadge"],
+            div[data-testid="stStatusWidget"],
+            div[class*="StatusWidget"],
+            .viewerBadge_link__1S137,
+            .viewerBadge_text__1JaDK,
+            div[class*="hosted"],
+            a[href*="streamlit.io"],
+            div:contains("Made with Streamlit"),
+            div:contains("Hosted with Streamlit"),
+            .css-18ni7ap,
+            .css-hxt7ib,
+            .e8zbici2 {
+                display: none !important;
+                visibility: hidden !important;
+                opacity: 0 !important;
+            }
             </style>
+            
+            <script>
+            // Remove Streamlit branding dynamically
+            function hideStreamlitBranding() {
+                // Hide footer badges
+                const badges = document.querySelectorAll('div[class*="viewerBadge"], div[data-testid="stStatusWidget"], div[class*="StatusWidget"]');
+                badges.forEach(badge => {
+                    badge.style.display = 'none';
+                    badge.style.visibility = 'hidden';
+                    badge.remove();
+                });
+                
+                // Hide any links to streamlit.io
+                const streamlitLinks = document.querySelectorAll('a[href*="streamlit.io"]');
+                streamlitLinks.forEach(link => {
+                    link.style.display = 'none';
+                    link.style.visibility = 'hidden';
+                    link.remove();
+                });
+                
+                // Hide any text containing "Streamlit"
+                const walker = document.createTreeWalker(
+                    document.body,
+                    NodeFilter.SHOW_TEXT,
+                    null,
+                    false
+                );
+                
+                const textNodes = [];
+                let node;
+                while (node = walker.nextNode()) {
+                    if (node.textContent.includes('Made with Streamlit') || 
+                        node.textContent.includes('Hosted with Streamlit') ||
+                        node.textContent.includes('streamlit.io')) {
+                        textNodes.push(node);
+                    }
+                }
+                
+                textNodes.forEach(textNode => {
+                    if (textNode.parentElement) {
+                        textNode.parentElement.style.display = 'none';
+                        textNode.parentElement.remove();
+                    }
+                });
+            }
+            
+            // Run on page load and periodically
+            document.addEventListener('DOMContentLoaded', hideStreamlitBranding);
+            setTimeout(hideStreamlitBranding, 1000);
+            setTimeout(hideStreamlitBranding, 3000);
+            setTimeout(hideStreamlitBranding, 5000);
+            
+            // Create observer to watch for new elements
+            const observer = new MutationObserver(function(mutations) {
+                hideStreamlitBranding();
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+            </script>
         """, unsafe_allow_html=True)
         
         # Professional Sidebar using pure Streamlit components
