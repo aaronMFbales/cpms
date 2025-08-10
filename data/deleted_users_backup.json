@@ -14,5 +14,21 @@
     "approved_by": "admin",
     "deleted_at": 1754142808.9604425,
     "deleted_by": "admin"
+  },
+  "joe": {
+    "password": "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
+    "role": "encoder",
+    "approved": true,
+    "created_at": 1754827160.2685564,
+    "first_name": "Joe",
+    "last_name": "Bales",
+    "email": "joebales0415@gmail.com",
+    "organization": "bakeshop",
+    "position": "manager",
+    "contact_number": "09507616161",
+    "approved_at": 1754827220.1100776,
+    "approved_by": "admin",
+    "deleted_at": 1754828027.085899,
+    "deleted_by": "admin"
   }
 }
