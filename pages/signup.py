@@ -7,6 +7,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
+from utils.admin_config import get_default_admin_user, create_admin_if_not_exists
 
 def hash_password(password):
     """Hash password for security"""
@@ -18,12 +19,17 @@ def load_users():
     if os.path.exists(users_file):
         try:
             with open(users_file, 'r') as f:
-                return json.load(f)
+                users = json.load(f)
+                # Ensure admin user exists
+                created, message = create_admin_if_not_exists(users)
+                if created:
+                    save_users(users)
+                return users
         except:
-            return {"admin": {"password": hash_password("1234"), "role": "admin", "approved": True, "created_at": time.time()}}
+            return get_default_admin_user()
     else:
         # Initialize with admin user
-        admin_user = {"admin": {"password": hash_password("1234"), "role": "admin", "approved": True, "created_at": time.time()}}
+        admin_user = get_default_admin_user()
         save_users(admin_user)
         return admin_user
 

@@ -7,6 +7,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
+from utils.admin_config import get_default_admin_user, create_admin_if_not_exists, get_admin_credentials_display
 
 def hash_password(password):
     """Hash password for security"""
@@ -18,12 +19,17 @@ def load_users():
     if os.path.exists(users_file):
         try:
             with open(users_file, 'r') as f:
-                return json.load(f)
+                users = json.load(f)
+                # Ensure admin user exists
+                created, message = create_admin_if_not_exists(users)
+                if created:
+                    save_users(users)
+                return users
         except:
-            return {"admin": {"password": hash_password("1234"), "role": "admin", "approved": True, "created_at": time.time()}}
+            return get_default_admin_user()
     else:
         # Initialize with admin user
-        admin_user = {"admin": {"password": hash_password("1234"), "role": "admin", "approved": True, "created_at": time.time()}}
+        admin_user = get_default_admin_user()
         save_users(admin_user)
         return admin_user
 
@@ -594,6 +600,44 @@ with st.sidebar:
             <div class="stats-info">Pending: {pending_users}</div>
         </div>
     """, unsafe_allow_html=True)
+    
+    # Admin Configuration Info
+    st.markdown("---")
+    st.markdown("### 🔐 Admin Configuration")
+    
+    admin_info = get_admin_credentials_display()
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown(f"**Username:** `{admin_info['username']}`")
+        st.markdown(f"**Email:** `{admin_info['email']}`")
+    with col2:
+        st.markdown(f"**Name:** {admin_info['name']}")
+        st.markdown(f"**Password:** {admin_info['password']}")
+    
+    st.info("💡 Admin credentials are stored securely in Streamlit secrets")
+    
+    if st.button("🔄 Reset Admin Account", help="This will recreate the admin account with current settings"):
+        try:
+            # Remove existing admin and recreate
+            users = load_users()
+            # Find and remove any existing admin accounts
+            admin_keys_to_remove = [k for k, v in users.items() if v.get("role") == "admin"]
+            for key in admin_keys_to_remove:
+                del users[key]
+            
+            # Add new admin
+            created, message = create_admin_if_not_exists(users)
+            if created:
+                save_users(users)
+                st.success("✅ Admin account reset successfully!")
+                st.rerun()
+            else:
+                st.warning("⚠️ Could not reset admin account")
+        except Exception as e:
+            st.error(f"❌ Error resetting admin account: {str(e)}")
+    
+    st.markdown("---")
     
     # User info section - placed right below System Overview
     auth_cookie = st.session_state["auth_cookie"]

@@ -5,6 +5,7 @@ import time
 import json
 import os
 import hashlib
+from utils.admin_config import get_default_admin_user, create_admin_if_not_exists
 
 def load_users():
     """Load users from JSON file"""
@@ -14,14 +15,21 @@ def load_users():
             with open(users_file, 'r') as f:
                 users = json.load(f)
                 print(f"Loaded {len(users)} users: {list(users.keys())}")  # Debug print
+                
+                # Ensure admin user exists
+                created, message = create_admin_if_not_exists(users)
+                if created:
+                    print(f"Admin check: {message}")
+                    save_users(users)  # Save if admin was created
+                
                 return users
         except Exception as e:
             print(f"Error loading users: {e}")  # Debug print
-            return {"admin": {"password": hashlib.sha256("1234".encode()).hexdigest(), "role": "admin", "approved": True, "created_at": time.time()}}
+            return get_default_admin_user()
     else:
         print(f"Users file not found at: {users_file}")  # Debug print
         # Initialize with admin user
-        admin_user = {"admin": {"password": hashlib.sha256("1234".encode()).hexdigest(), "role": "admin", "approved": True, "created_at": time.time()}}
+        admin_user = get_default_admin_user()
         save_users(admin_user)
         return admin_user
 
