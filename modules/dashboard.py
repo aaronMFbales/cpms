@@ -8,6 +8,20 @@ from utils.philippine_locations import create_location_widgets
 from utils.psic_handler import create_psic_widgets
 from utils.data_manager import data_manager
 
+# Try to import openpyxl explicitly
+try:
+    import openpyxl
+    OPENPYXL_AVAILABLE = True
+except ImportError:
+    OPENPYXL_AVAILABLE = False
+
+# Try xlsxwriter as fallback
+try:
+    import xlsxwriter
+    XLSXWRITER_AVAILABLE = True
+except ImportError:
+    XLSXWRITER_AVAILABLE = False
+
 def save_targets_to_file(targets):
     """Save targets to a persistent file"""
     data_dir = "data"
@@ -123,8 +137,14 @@ def create_user_excel_download():
             "Business Financial Structure", "Market Import", "Product Service Lines", 
             "Employment Statistics", "Assistance", "Market Export", "Jobs Generated"
         ]
+        # Check if Excel engines are available
+        if not OPENPYXL_AVAILABLE and not XLSXWRITER_AVAILABLE:
+            st.error("Excel export requires openpyxl or xlsxwriter package. Please contact system administrator.")
+            return None, False
         
-        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        # Use available engine
+        engine = 'openpyxl' if OPENPYXL_AVAILABLE else 'xlsxwriter'
+        with pd.ExcelWriter(output, engine=engine) as writer:
             has_data = False
             
             for sheet_name in sheet_names:
