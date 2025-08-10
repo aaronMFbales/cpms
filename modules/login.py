@@ -53,6 +53,21 @@ def show():
     footer {visibility: hidden;}
     header {visibility: hidden;}
     
+    /* Hide the entire app header including profile */
+    div[data-testid="stAppViewContainer"] > section:first-child {
+        display: none !important;
+    }
+    
+    /* Hide Streamlit's top toolbar */
+    .stAppToolbar {
+        display: none !important;
+    }
+    
+    /* Hide deploy button and GitHub info */
+    .stActionButton {
+        display: none !important;
+    }
+    
     /* Hide sidebar on login page */
     section[data-testid="stSidebar"] {
         display: none !important;
@@ -87,6 +102,41 @@ def show():
     }
     /* Hide Streamlit's "Please Enter to apply" helper text */
     span[data-baseweb="form-control-caption"] {
+        display: none !important;
+    }
+    
+    /* Hide profile and creator information */
+    div[data-testid="stAppViewContainer"] > div:first-child {
+        display: none !important;
+    }
+    
+    /* Hide GitHub profile badge/info */
+    div[data-testid="stAppViewBlockContainer"] > div:first-child {
+        display: none !important;
+    }
+    
+    /* Hide any footer or creator attribution */
+    div[data-testid="stBottom"] {
+        display: none !important;
+    }
+    
+    /* Hide Streamlit's default app header */
+    header[data-testid="stHeader"] {
+        display: none !important;
+    }
+    
+    /* Alternative selectors to hide profile info */
+    .st-emotion-cache-18ni7ap,
+    .st-emotion-cache-6qob1r,
+    [data-testid="stAppViewContainer"] > div:nth-child(1) {
+        display: none !important;
+    }
+    
+    /* Hide any "created by" or attribution text */
+    div:contains("created by"),
+    div:contains("Aaron Bales"),
+    small:contains("created by"),
+    p:contains("created by") {
         display: none !important;
     }
     </style>
