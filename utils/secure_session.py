@@ -22,7 +22,9 @@ class SecureSessionManager:
         """Generate unique browser/device ID"""
         # Use Streamlit's session ID and additional browser fingerprinting
         try:
-            session_id = st.runtime.get_instance().get_session_id() if st.runtime.get_instance() else None
+            # For newer Streamlit versions, get session ID from runtime
+            runtime = st.runtime.get_instance()
+            session_id = runtime.get_session_id() if runtime else None
         except:
             session_id = None
         
@@ -33,7 +35,7 @@ class SecureSessionManager:
                 st.session_state.browser_id = str(uuid.uuid4())
             session_id = st.session_state.browser_id
         
-        return session_id
+        return str(session_id)
     
     def get_session_file_path(self):
         """Get the session file path for current browser"""

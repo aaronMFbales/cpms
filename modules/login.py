@@ -45,48 +45,40 @@ def save_users(users):
         json.dump(users, f, indent=2)
 
 def show():
-    st.set_page_config(page_title="CPMS Login", layout="centered")
-
     # Robust CSS with specific targeting for login page only
     login_css = """
         <style>
-        /* Login page specific CSS - use unique selectors to avoid conflicts */
-        .login-page-container #MainMenu {visibility: hidden;}
-        .login-page-container footer {visibility: hidden;}
-        .login-page-container header {visibility: hidden;}
+        /* Hide Streamlit elements */
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        header {visibility: hidden;}
         
-        /* Hide the entire app header including profile - login page only */
-        .login-page-container div[data-testid="stAppViewContainer"] > section:first-child {
+        /* Hide sidebar completely on login page */
+        section[data-testid="stSidebar"] {
             display: none !important;
         }
         
-        /* Hide Streamlit's top toolbar - login page only */
-        .login-page-container .stAppToolbar {
+        /* Hide sidebar toggle button */
+        [data-testid="collapsedControl"] {
             display: none !important;
         }
         
-        /* Hide deploy button and GitHub info - login page only */
-        .login-page-container .stActionButton {
+        /* Hide deploy button and other Streamlit branding */
+        .stAppDeployButton,
+        div[data-testid="stAppDeployButton"],
+        .stAppToolbar,
+        .stActionButton {
             display: none !important;
         }
         
-        /* Hide sidebar on login page only */
-        .login-page-container section[data-testid="stSidebar"] {
-            display: none !important;
+        /* Login form input field width adjustment */
+        .stTextInput > div > div > input {
+            width: 70% !important;
+            margin: 0 auto !important;
         }
         
-        /* Hide sidebar toggle button - login page only */
-        .login-page-container [data-testid="collapsedControl"] {
-            display: none !important;
-        }
-        
-        /* Hide any custom sidebar elements - login page only */
-        .login-page-container .custom-sidebar {
-            display: none !important;
-        }
-        
-        /* Login button styling - specific to login page */
-        .login-page-container .stButton>button {
+        /* Login button styling */
+        .stButton>button {
             width: 30%;
             float: right;
             margin-right: 100px;
@@ -95,43 +87,19 @@ def show():
             border: none;
             transition: background-color 0.3s ease;
         }
-        .login-page-container .stButton>button:hover {
+        .stButton>button:hover {
             background-color: #1a2b5c;
             color: white;
         }
         
-        /* Move entire content upward - login page only */
-        .login-page-container div.block-container {
+        /* Move content upward */
+        div.block-container {
             padding-top: 20px !important;
-        }
-        
-        /* Hide various Streamlit elements - login page specific */
-        .login-page-container span[data-baseweb="form-control-caption"],
-        .login-page-container div[data-testid="stAppViewContainer"] > div:first-child,
-        .login-page-container div[data-testid="stAppViewBlockContainer"] > div:first-child,
-        .login-page-container div[data-testid="stBottom"],
-        .login-page-container header[data-testid="stHeader"],
-        .login-page-container .st-emotion-cache-18ni7ap,
-        .login-page-container .st-emotion-cache-6qob1r,
-        .login-page-container .stAppDeployButton,
-        .login-page-container div[data-testid="stAppDeployButton"],
-        .login-page-container a[href*="streamlit.io"],
-        .login-page-container .st-emotion-cache-h4xjwg,
-        .login-page-container .stAppViewBlockContainer > div:last-child,
-        .login-page-container div[class*="floating"],
-        .login-page-container div[class*="badge"] {
-            display: none !important;
-        }
-        
-        /* Reset any inherited styles that might interfere */
-        .login-page-container {
-            background: white;
-            min-height: 100vh;
         }
         </style>
     """
     
-    # Apply login page CSS with container wrapper (use unique key to prevent conflicts)
+    # Apply login page CSS
     st.markdown(login_css, unsafe_allow_html=True)
     
     # Clear any previous page states that might interfere
@@ -139,9 +107,6 @@ def show():
         del st.session_state['selected_nav_item']
     if 'selected_sheet' in st.session_state:
         del st.session_state['selected_sheet']
-    
-    # Wrap everything in a container div for CSS targeting
-    st.markdown('<div class="login-page-container">', unsafe_allow_html=True)
 
     if "authenticated" not in st.session_state:
         st.session_state["authenticated"] = False
@@ -149,12 +114,12 @@ def show():
     if st.session_state["authenticated"]:
         st.switch_page("modules/dashboard.py")  # ⬅️ Redirect to dashboard
 
-    # Center everything using a single centered column
-    col1, col2, col3 = st.columns([1, 2, 1])
+    # Center everything using a single centered column - adjusted to move form left
+    col1, col2, col3 = st.columns([1.3, 1, 1.2])
     with col2:
         # Center the logo
         logo_path = "assets/dtilogo.png"
-        st.image(logo_path, width=500)  
+        st.image(logo_path, width=350)  
 
         # Center the title with slight left adjustment
         st.markdown(
@@ -216,5 +181,3 @@ def show():
         
         if signup:
             st.switch_page("pages/signup.py")
-
-    st.markdown("</div>", unsafe_allow_html=True)

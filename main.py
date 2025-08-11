@@ -15,12 +15,20 @@ if os.getenv('RENDER'):
 st.set_page_config(
     page_title="DTI CPMS",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
 def main():
+    # Ensure data directory exists
+    data_dir = "data"
+    if not os.path.exists(data_dir):
+        os.makedirs(data_dir)
+    
     # Clean up expired sessions on startup
-    session_manager.cleanup_expired_sessions()
+    try:
+        session_manager.cleanup_expired_sessions()
+    except Exception as e:
+        print(f"Session cleanup error: {e}")
     
     # Initialize session state for authentication
     if "authenticated" not in st.session_state:
@@ -31,10 +39,13 @@ def main():
     
     # Load session for current browser/device
     if not st.session_state["authenticated"]:
-        saved_session = session_manager.load_session()
-        if saved_session and saved_session.get("authenticated"):
-            st.session_state["authenticated"] = True
-            st.session_state["auth_cookie"] = saved_session
+        try:
+            saved_session = session_manager.load_session()
+            if saved_session and saved_session.get("authenticated"):
+                st.session_state["authenticated"] = True
+                st.session_state["auth_cookie"] = saved_session
+        except Exception as e:
+            print(f"Session load error: {e}")
 
     if not st.session_state["authenticated"]:
         login.show()
