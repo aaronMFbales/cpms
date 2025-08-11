@@ -316,6 +316,9 @@ def perform_global_search(search_term):
         return results
 
 def show():    
+        # Get authentication info at the start
+        auth_cookie = st.session_state.get("auth_cookie", {})
+        
         # Handle navigation from search results before any widgets are created
         if 'navigate_to' in st.session_state:
             st.session_state.selected_nav_item = st.session_state.navigate_to
@@ -1156,7 +1159,6 @@ def show():
             # Browser session info
             st.caption(f"Session ID: {session_manager.get_browser_id()[:8]}...")
             
-            auth_cookie = st.session_state.get("auth_cookie", {})
             user_name = auth_cookie.get("first_name", "User")
             user_last = auth_cookie.get("last_name", "")
             user_role = auth_cookie.get("role", "user")
