@@ -146,6 +146,81 @@ def load_all_data_from_file():
         st.error(f"Error loading data: {str(e)}")
         return {}
 
+def search_for_duplicates():
+    """Search for duplicates across all sheets"""
+    try:
+        # Get current user from session
+        auth_cookie = st.session_state.get("auth_cookie", {})
+        username = auth_cookie.get("username", "anonymous")
+        
+        duplicate_results = {}
+        
+        # Define fields to check for duplicates in each sheet
+        duplicate_check_fields = {
+            "Client": ["First Name", "Last Name", "Full Name", "Business Name", "Email", "Contact Number"],
+            "Business Owner": ["First Name", "Last Name", "Full Name", "Business Name", "Email", "Contact Number"],
+            "Business Profile": ["Business Name", "Business Registration Number", "TIN", "Email"],
+            "Business Registration": ["Business Name", "Registration Number", "TIN"],
+            "Business Contact Information": ["Business Name", "Email", "Contact Number"],
+            "Business Financial Structure": ["Business Name", "TIN"],
+            "Market Domestic": ["Business Name", "Product/Service"],
+            "Market Export": ["Business Name", "Product/Service", "Destination Country"],
+            "Market Import": ["Business Name", "Product/Service", "Source Country"],
+            "Product Service Lines": ["Business Name", "Product/Service Name"],
+            "Employment Statistics": ["Business Name", "Employee Name"],
+            "Assistance": ["Business Name", "Beneficiary Name"],
+            "Jobs Generated": ["Business Name", "Job Title"]
+        }
+        
+        for sheet_name, fields_to_check in duplicate_check_fields.items():
+            try:
+                # Load data for this sheet
+                data, columns = data_manager.load_user_data(username, sheet_name)
+                if not data or not columns:
+                    continue
+                
+                df = pd.DataFrame(data, columns=columns)
+                if df.empty:
+                    continue
+                
+                sheet_duplicates = {}
+                
+                # Check each field for duplicates
+                for field in fields_to_check:
+                    if field in df.columns:
+                        # Find duplicates (non-empty values only)
+                        field_data = df[field].dropna()
+                        field_data = field_data[field_data.astype(str).str.strip() != '']
+                        
+                        if len(field_data) > 1:
+                            value_counts = field_data.value_counts()
+                            duplicates = value_counts[value_counts > 1]
+                            
+                            if not duplicates.empty:
+                                duplicate_list = []
+                                for value, count in duplicates.items():
+                                    # Get row numbers (1-based indexing for user display)
+                                    matching_rows = df[df[field] == value].index + 1
+                                    duplicate_list.append({
+                                        'value': str(value),
+                                        'count': int(count),
+                                        'rows': matching_rows.tolist()
+                                    })
+                                
+                                sheet_duplicates[field] = duplicate_list
+                
+                if sheet_duplicates:
+                    duplicate_results[sheet_name] = sheet_duplicates
+                    
+            except Exception as e:
+                continue
+        
+        return duplicate_results
+        
+    except Exception as e:
+        st.error(f"Error searching for duplicates: {str(e)}")
+        return {}
+
 def create_user_excel_download():
     """Create Excel file for current user's data"""
     try:
@@ -1104,6 +1179,7 @@ def show():
         with st.sidebar:
             # Simple header
             st.title("CPMS Dashboard")
+            st.caption("Client Profile and Monitoring System")
             
             # Define all menu items in order (no categories)
             menu_items = [
@@ -1152,26 +1228,6 @@ def show():
                     st.info("Active Sheets: 0")
             else:
                 st.info("Active Sheets: 0")
-            
-            # Action buttons
-            st.subheader("Actions")
-            
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                if st.button("Clear Data", key="clear_data_btn", type="secondary", use_container_width=True):
-                    if os.path.exists(excel_file):
-                        os.remove(excel_file)
-                    st.success("All data cleared!")
-                    st.rerun()
-            
-            with col2:
-                if st.button("Logout", key="logout_btn", type="primary", use_container_width=True):
-                    st.session_state["authenticated"] = False
-                    st.session_state["auth_cookie"] = None
-                    # Clear browser-specific session
-                    session_manager.clear_session()
-                    st.rerun()
             
             # User info section
             st.divider()
@@ -1241,6 +1297,54 @@ def show():
                     st.caption(f"Add some data first to include records in the export ({format_note})")
             else:
                 st.error("Unable to create data file")
+            
+            # Actions section - moved to bottom
+            st.divider()
+            st.subheader("Actions")
+            
+            # Refresh button
+            if st.button("Refresh", key="refresh_btn", type="secondary", use_container_width=True):
+                st.success("Dashboard refreshed!")
+                st.rerun()
+            
+            # Search for duplicates button
+            if st.button("Search For Duplicates", key="search_duplicates_btn", type="secondary", use_container_width=True):
+                st.session_state.show_duplicate_search = True
+                st.rerun()
+            
+            # Logout button - at the bottom
+            if st.button("Logout", key="logout_btn", type="primary", use_container_width=True):
+                st.session_state["authenticated"] = False
+                st.session_state["auth_cookie"] = None
+                # Clear browser-specific session
+                session_manager.clear_session()
+                st.rerun()
+            
+            # Duplicate search results display
+            if st.session_state.get("show_duplicate_search", False):
+                st.divider()
+                st.subheader("Duplicate Search Results")
+                
+                # Perform duplicate search across all sheets
+                duplicate_results = search_for_duplicates()
+                
+                if duplicate_results:
+                    for sheet_name, duplicates in duplicate_results.items():
+                        if duplicates:
+                            st.markdown(f"**{sheet_name} Sheet:**")
+                            for field, duplicate_list in duplicates.items():
+                                if duplicate_list:
+                                    st.warning(f"**{field}** duplicates found:")
+                                    for duplicate_info in duplicate_list:
+                                        st.write(f"• '{duplicate_info['value']}' appears {duplicate_info['count']} times (rows: {', '.join(map(str, duplicate_info['rows']))})")
+                            st.write("")
+                else:
+                    st.success("No duplicates found across all sheets!")
+                
+                # Close button
+                if st.button("Close Results", key="close_duplicates_btn", type="secondary"):
+                    st.session_state.show_duplicate_search = False
+                    st.rerun()
 
         st.session_state.selected_sheet = selected
 
@@ -1571,7 +1675,7 @@ def show():
                     <p style="color: rgba(255,255,255,0.95); margin: 20px 0 0 0; font-size: 1.3em;
                               text-shadow: 1px 1px 4px rgba(0,0,0,0.3);
                               font-weight: 400; letter-spacing: 0.5px;">
-                        Comprehensive Performance Monitoring & Strategic Insights | {current_month_name} {current_year}
+                        Comprehensive Profile Monitoring & Strategic Insights | {current_month_name} {current_year}
                     </p>
                 </div>
             """, unsafe_allow_html=True)
@@ -2303,8 +2407,9 @@ def show():
                     with col2:
                         # Civil Status with red asterisk
                         st.markdown('<label style="color: black;">Civil Status <span style="color: red;">*</span></label>', unsafe_allow_html=True)
-                        new_entry["Civil Status"] = st.text_input(
+                        new_entry["Civil Status"] = st.selectbox(
                             "Civil Status *",
+                            options=["", "Single", "Married", "Divorced", "Widowed", "Separated"],
                             key=f"bo_civil_status_{st.session_state.get('bo_form_counter', 0)}",
                             label_visibility="collapsed"
                         )
@@ -3058,8 +3163,9 @@ def show():
                     with col2:
                         # Civil Status with red asterisk
                         st.markdown('<label style="color: black;">Civil Status <span style="color: red;">*</span></label>', unsafe_allow_html=True)
-                        new_entry["Civil Status"] = st.text_input(
+                        new_entry["Civil Status"] = st.selectbox(
                             "Civil Status *", 
+                            options=["", "Single", "Married", "Divorced", "Widowed", "Separated"],
                             key=f"client_civil_status_{st.session_state.get('client_form_counter', 0)}",
                             label_visibility="collapsed"
                         )
@@ -4713,15 +4819,36 @@ def show():
             with col2:
                 if st.button("Delete All Rows", key=f"delete_all_btn_{selected}", type="secondary", use_container_width=True):
                     if len(df) > 0:
-                        # Store current data for undo functionality
-                        st.session_state[undo_key] = df.copy()
-                        # Clear all data
-                        st.session_state[table_key] = []
-                        save_current_data(selected)
-                        st.success("All rows deleted successfully!")
-                        st.rerun()
+                        # Show confirmation dialog
+                        st.session_state[f"show_delete_all_confirm_{selected}"] = True
                     else:
                         st.warning("No data to delete!")
+                
+                # Confirmation dialog for Delete All Rows
+                if st.session_state.get(f"show_delete_all_confirm_{selected}", False):
+                    st.warning("⚠️ **CONFIRMATION REQUIRED**")
+                    st.write(f"Are you sure you want to delete **ALL {len(df)} rows** from the {selected} sheet?")
+                    st.write("This action cannot be undone (except with the Undo button).")
+                    
+                    conf_col1, conf_col2 = st.columns(2)
+                    
+                    with conf_col1:
+                        if st.button("✅ Yes, Delete All", key=f"confirm_delete_all_{selected}", type="primary", use_container_width=True):
+                            # Store current data for undo functionality
+                            st.session_state[undo_key] = df.copy()
+                            # Clear all data
+                            st.session_state[table_key] = []
+                            save_current_data(selected)
+                            # Clear confirmation dialog
+                            st.session_state[f"show_delete_all_confirm_{selected}"] = False
+                            st.success("All rows deleted successfully!")
+                            st.rerun()
+                    
+                    with conf_col2:
+                        if st.button("❌ Cancel", key=f"cancel_delete_all_{selected}", type="secondary", use_container_width=True):
+                            # Clear confirmation dialog
+                            st.session_state[f"show_delete_all_confirm_{selected}"] = False
+                            st.rerun()
             
             with col3:
                 if st.button("Undo", key=f"undo_btn_{selected}", type="primary", use_container_width=True):
