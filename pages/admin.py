@@ -8,6 +8,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
 from utils.admin_config import get_default_admin_user, create_admin_if_not_exists, get_admin_credentials_display
+from utils.secure_session import session_manager
 
 def hash_password(password):
     """Hash password for security"""
@@ -678,7 +679,6 @@ with st.sidebar:
     if st.button("Logout", key="sidebar_logout", type="primary", use_container_width=True):
         st.session_state["authenticated"] = False
         st.session_state["auth_cookie"] = None
-        session_file = "session.json"
-        if os.path.exists(session_file):
-            os.remove(session_file)
+        # Clear browser-specific session
+        session_manager.clear_session()
         st.switch_page("main.py") 

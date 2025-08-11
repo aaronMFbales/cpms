@@ -6,6 +6,7 @@ import json
 import os
 import hashlib
 from utils.admin_config import get_default_admin_user, create_admin_if_not_exists
+from utils.secure_session import session_manager
 
 def load_users():
     """Load users from JSON file"""
@@ -214,10 +215,8 @@ def show():
                         }
                         st.session_state["auth_cookie"] = auth_data
                         
-                        # Save session to file for persistence
-                        session_file = "session.json"
-                        with open(session_file, 'w') as f:
-                            json.dump(auth_data, f)
+                        # Save session using secure session manager (per-browser)
+                        session_manager.save_session(auth_data)
                         
                         st.success(f"Login successful! Welcome {username} ({user_data.get('role', 'encoder')})")
                         # Redirect based on role

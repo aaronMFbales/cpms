@@ -3,6 +3,7 @@ from modules import login, dashboard
 import time
 import json
 import os
+from utils.secure_session import session_manager
 
 # Render compatibility
 if os.getenv('RENDER'):
@@ -18,34 +19,22 @@ st.set_page_config(
 )
 
 def main():
+    # Clean up expired sessions on startup
+    session_manager.cleanup_expired_sessions()
+    
     # Initialize session state for authentication
     if "authenticated" not in st.session_state:
         st.session_state["authenticated"] = False
     
-    # Check for existing authentication cookiez``
     if "auth_cookie" not in st.session_state:
         st.session_state["auth_cookie"] = None
     
-    # Check for persistent session file
-    session_file = "session.json"
-    if os.path.exists(session_file):
-        try:
-            with open(session_file, 'r') as f:
-                saved_session = json.load(f)
-                if saved_session.get("authenticated") and saved_session.get("timestamp"):
-                    current_time = time.time()
-                    if current_time - saved_session["timestamp"] < 86400:  # 24 hours
-                        st.session_state["authenticated"] = True
-                        st.session_state["auth_cookie"] = saved_session
-                        # Update timestamp
-                        saved_session["timestamp"] = current_time
-                        with open(session_file, 'w') as f:
-                            json.dump(saved_session, f)
-                    else:
-                        # Session expired, remove file
-                        os.remove(session_file)
-        except:
-            pass
+    # Load session for current browser/device
+    if not st.session_state["authenticated"]:
+        saved_session = session_manager.load_session()
+        if saved_session and saved_session.get("authenticated"):
+            st.session_state["authenticated"] = True
+            st.session_state["auth_cookie"] = saved_session
 
     if not st.session_state["authenticated"]:
         login.show()

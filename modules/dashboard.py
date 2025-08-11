@@ -7,6 +7,7 @@ from datetime import datetime
 from utils.philippine_locations import create_location_widgets
 from utils.psic_handler import create_psic_widgets
 from utils.data_manager import data_manager
+from utils.secure_session import session_manager
 
 # Try to import openpyxl explicitly
 try:
@@ -1140,14 +1141,20 @@ def show():
                 if st.button("Logout", key="logout_btn", type="primary", use_container_width=True):
                     st.session_state["authenticated"] = False
                     st.session_state["auth_cookie"] = None
-                    session_file = "session.json"
-                    if os.path.exists(session_file):
-                        os.remove(session_file)
+                    # Clear browser-specific session
+                    session_manager.clear_session()
                     st.rerun()
             
             # User info section
             st.divider()
             st.subheader("User Profile")
+            
+            # Show active sessions info (admin only)
+            if auth_cookie.get("role") == "admin":
+                st.caption(f"Active Sessions: {session_manager.get_active_sessions_count()}")
+            
+            # Browser session info
+            st.caption(f"Session ID: {session_manager.get_browser_id()[:8]}...")
             
             auth_cookie = st.session_state.get("auth_cookie", {})
             user_name = auth_cookie.get("first_name", "User")
