@@ -139,10 +139,48 @@ def show():
                 signup = st.form_submit_button("Sign Up", use_container_width=True)
 
         if login:
+            # Advanced character cleaning
+            import re
+            import unicodedata
+            
+            # Get raw input for debugging
+            raw_username = username if username else ""
+            raw_password = password if password else ""
+            
+            # Step 1: Unicode normalization
+            username = unicodedata.normalize('NFKC', raw_username) if raw_username else ""
+            password = unicodedata.normalize('NFKC', raw_password) if raw_password else ""
+            
+            # Step 2: Remove zero-width and invisible characters
+            invisible_chars = [
+                '\u200B',  # Zero-width space
+                '\u200C',  # Zero-width non-joiner
+                '\u200D',  # Zero-width joiner
+                '\u2060',  # Word joiner
+                '\uFEFF',  # Zero-width no-break space (BOM)
+                '\u00AD',  # Soft hyphen
+                '\u034F',  # Combining grapheme joiner
+                '\u180E',  # Mongolian vowel separator
+            ]
+            
+            for char in invisible_chars:
+                username = username.replace(char, '')
+                password = password.replace(char, '')
+            
+            # Step 3: Replace all Unicode whitespace with regular space, then strip
+            username = re.sub(r'\s+', ' ', username).strip()
+            password = re.sub(r'\s+', ' ', password).strip()
+            
+            # Step 4: Remove any remaining non-printable characters
+            username = re.sub(r'[^\x20-\x7E]', '', username)
+            password = re.sub(r'[^\x20-\x7E]', '', password)
+            
+            # Step 5: Final cleanup - remove any control characters
+            username = ''.join(char for char in username if ord(char) >= 32 and ord(char) <= 126)
+            password = ''.join(char for char in password if ord(char) >= 32 and ord(char) <= 126)
+            
             # Load users and check credentials
             users = load_users()
-            print(f"Login attempt for username: {username}")  # Debug print
-            print(f"Available users: {list(users.keys())}")  # Debug print
             
             if username in users:
                 user_data = users[username]

@@ -2,8 +2,8 @@ services:
   - type: web
     name: dti-cpms
     runtime: python3
-    buildCommand: pip install --upgrade pip && pip install -r requirements-render.txt
-    startCommand: streamlit run main.py --server.port $PORT --server.address 0.0.0.0 --server.headless true --server.enableCORS false
+    buildCommand: echo "BUILD TEMPORARILY DISABLED FOR MAINTENANCE" && exit 1
+    startCommand: bash deploy.sh
     env:
       - key: PYTHON_VERSION
         value: 3.11.9
@@ -12,4 +12,8 @@ services:
       - key: STREAMLIT_SERVER_HEADLESS
         value: true
       - key: STREAMLIT_SERVER_ENABLE_CORS
+        value: false
+      - key: STREAMLIT_SERVER_ENABLE_STATIC_SERVING
+        value: true
+      - key: STREAMLIT_BROWSER_GATHER_USAGE_STATS
         value: false

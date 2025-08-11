@@ -9,6 +9,31 @@ from utils.psic_handler import create_psic_widgets
 from utils.data_manager import data_manager
 from utils.secure_session import session_manager
 
+# Add JavaScript error handling for Render deployment issues
+if os.getenv('RENDER'):
+    st.markdown("""
+    <script>
+    // Handle JavaScript module loading errors
+    window.addEventListener('error', function(e) {
+        if (e.message && e.message.includes('Failed to fetch dynamically imported module')) {
+            console.error('JS Module Error:', e.message);
+            // Attempt to reload the page with cache busting
+            setTimeout(function() {
+                window.location.reload(true);
+            }, 2000);
+        }
+    });
+    
+    // Handle unhandled promise rejections
+    window.addEventListener('unhandledrejection', function(e) {
+        if (e.reason && e.reason.toString().includes('dynamically imported module')) {
+            console.error('Promise Rejection:', e.reason);
+            e.preventDefault();
+        }
+    });
+    </script>
+    """, unsafe_allow_html=True)
+
 # Try to import openpyxl explicitly
 try:
     import openpyxl

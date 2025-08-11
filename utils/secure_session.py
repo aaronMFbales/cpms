@@ -19,23 +19,52 @@ class SecureSessionManager:
             os.makedirs(self.sessions_dir)
     
     def get_browser_id(self):
-        """Generate unique browser/device ID"""
-        # Use Streamlit's session ID and additional browser fingerprinting
+        """Generate unique browser/device ID that persists across refreshes"""
         try:
             # For newer Streamlit versions, get session ID from runtime
             runtime = st.runtime.get_instance()
             session_id = runtime.get_session_id() if runtime else None
+            if session_id:
+                return str(session_id)
         except:
             session_id = None
         
-        # If no session ID available, generate based on browser info
-        if not session_id:
-            # Fallback: use random UUID stored in session state
-            if 'browser_id' not in st.session_state:
+        # Fallback: use consistent UUID stored in session state
+        if 'browser_id' not in st.session_state:
+            # Try to find an existing session for this browser by checking all session files
+            # This is a fallback for when session_state gets cleared
+            current_time = time.time()
+            most_recent_session = None
+            most_recent_time = 0
+            
+            try:
+                for filename in os.listdir(self.sessions_dir):
+                    if filename.startswith('session_') and filename.endswith('.json'):
+                        filepath = os.path.join(self.sessions_dir, filename)
+                        try:
+                            with open(filepath, 'r') as f:
+                                session_data = json.load(f)
+                            
+                            # Check if session is recent (within last hour) and authenticated
+                            session_time = session_data.get('timestamp', 0)
+                            if (current_time - session_time < 3600 and 
+                                session_data.get('authenticated') and
+                                session_time > most_recent_time):
+                                most_recent_session = filename.replace('session_', '').replace('.json', '')
+                                most_recent_time = session_time
+                        except:
+                            continue
+            except:
+                pass
+            
+            if most_recent_session:
+                st.session_state.browser_id = most_recent_session
+                print(f"Restored browser ID from recent session: {most_recent_session}")
+            else:
                 st.session_state.browser_id = str(uuid.uuid4())
-            session_id = st.session_state.browser_id
+                print(f"Generated new browser ID: {st.session_state.browser_id}")
         
-        return str(session_id)
+        return str(st.session_state.browser_id)
     
     def get_session_file_path(self):
         """Get the session file path for current browser"""

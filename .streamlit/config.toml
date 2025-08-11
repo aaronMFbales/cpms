@@ -3,6 +3,8 @@ headless = true
 port = 8501
 enableCORS = false
 enableXsrfProtection = false
+enableStaticServing = true
+maxUploadSize = 200
 
 [browser]
 gatherUsageStats = false
@@ -16,4 +18,5 @@ textColor = "#262730"
 
 [client]
 toolbarMode = "minimal"
-showErrorDetails = false
+showErrorDetails = true
+caching = true

@@ -111,6 +111,93 @@ def format_timestamp(timestamp):
     """Format timestamp to readable date"""
     return datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
 
+def get_active_users():
+    """Get list of currently active/online users"""
+    try:
+        active_users = []
+        sessions_dir = "data/sessions"
+        current_time = time.time()
+        
+        if not os.path.exists(sessions_dir):
+            return []
+        
+        # Load all users to get user details
+        users = load_users()
+        
+        for filename in os.listdir(sessions_dir):
+            if filename.startswith('session_') and filename.endswith('.json'):
+                filepath = os.path.join(sessions_dir, filename)
+                try:
+                    with open(filepath, 'r') as f:
+                        session_data = json.load(f)
+                    
+                    # Check if session is active (within last 30 minutes for online status)
+                    time_diff = current_time - session_data.get('timestamp', 0)
+                    
+                    if time_diff <= 1800:  # 30 minutes
+                        username = session_data.get('username')
+                        if username and username in users:
+                            user_info = users[username]
+                            
+                            # Determine status based on last activity
+                            if time_diff <= 300:  # 5 minutes - Online
+                                status = 'online'
+                                status_text = 'Online'
+                            elif time_diff <= 900:  # 15 minutes - Away
+                                status = 'away' 
+                                status_text = 'Away'
+                            else:  # Up to 30 minutes - Idle
+                                status = 'idle'
+                                status_text = 'Idle'
+                            
+                            active_users.append({
+                                'username': username,
+                                'full_name': f"{user_info.get('first_name', '')} {user_info.get('last_name', '')}".strip(),
+                                'role': user_info.get('role', 'encoder'),
+                                'status': status,
+                                'status_text': status_text,
+                                'last_activity': session_data.get('timestamp', 0),
+                                'browser_id': session_data.get('browser_id', 'unknown'),
+                                'session_start': session_data.get('created_at', 'unknown')
+                            })
+                except:
+                    continue
+        
+        # Sort by last activity (most recent first)
+        active_users.sort(key=lambda x: x['last_activity'], reverse=True)
+        return active_users
+        
+    except Exception as e:
+        return []
+
+def get_user_status_indicator(status):
+    """Get professional status indicator"""
+    if status == 'online':
+        return "●", "#22c55e"  # Green circle
+    elif status == 'away':
+        return "●", "#f59e0b"  # Yellow circle
+    elif status == 'idle':
+        return "●", "#f97316"  # Orange circle
+    else:
+        return "●", "#ef4444"  # Red circle
+
+def format_time_ago(timestamp):
+    """Format time difference as 'X minutes ago' """
+    current_time = time.time()
+    diff = current_time - timestamp
+    
+    if diff < 60:
+        return "Just now"
+    elif diff < 3600:
+        minutes = int(diff / 60)
+        return f"{minutes} minute{'s' if minutes != 1 else ''} ago"
+    elif diff < 86400:
+        hours = int(diff / 3600)
+        return f"{hours} hour{'s' if hours != 1 else ''} ago"
+    else:
+        days = int(diff / 86400)
+        return f"{days} day{'s' if days != 1 else ''} ago"
+
 def send_approval_notification(user_data):
     """Send email notification when user is approved"""
     try:
@@ -215,33 +302,49 @@ def send_rejection_notification(user_data):
 
 st.set_page_config(page_title="CPMS Admin", page_icon="", layout="wide")
 
-# Load session data if it exists
-def load_session():
-    session_file = "session.json"
-    if os.path.exists(session_file):
-        try:
-            with open(session_file, 'r') as f:
-                session_data = json.load(f)
-                return session_data
-        except:
-            return None
-    return None
+# Admin page session restoration - make it completely self-sufficient
+print(f"Admin page load - auth_cookie in session_state: {'auth_cookie' in st.session_state}")
 
-# Check if user is admin - restore session if needed
-if "auth_cookie" not in st.session_state or not st.session_state["auth_cookie"]:
-    # Try to restore from session file
-    saved_session = load_session()
-    if saved_session:
-        st.session_state["authenticated"] = True
-        st.session_state["auth_cookie"] = saved_session
-    else:
+# Always try to restore session if not authenticated
+if "authenticated" not in st.session_state or not st.session_state.get("authenticated"):
+    print("Session not authenticated, attempting restoration...")
+    try:
+        # Debug browser ID and session file
+        browser_id = session_manager.get_browser_id()
+        session_file = session_manager.get_session_file_path()
+        print(f"Browser ID: {browser_id}")
+        print(f"Session file path: {session_file}")
+        print(f"Session file exists: {os.path.exists(session_file)}")
+        
+        saved_session = session_manager.load_session()
+        print(f"Saved session found: {saved_session is not None}")
+        if saved_session:
+            print(f"Saved session data: {saved_session}")
+            
+        if saved_session and saved_session.get("authenticated") and saved_session.get("role") == "admin":
+            st.session_state["authenticated"] = True
+            st.session_state["auth_cookie"] = saved_session
+            print("Admin session restored successfully")
+        else:
+            print("No valid admin session found")
+            st.error("Access denied. Admin privileges required.")
+            st.markdown("[← Go back to login page](../)")
+            st.stop()
+    except Exception as e:
+        print(f"Admin session restore error: {e}")
         st.error("Access denied. Admin privileges required.")
+        st.markdown("[← Go back to login page](../)")
         st.stop()
 
-auth_cookie = st.session_state["auth_cookie"]
-if auth_cookie.get("role") != "admin":
+# Double-check admin role
+auth_cookie = st.session_state.get("auth_cookie")
+if not auth_cookie or auth_cookie.get("role") != "admin":
+    print(f"Admin role verification failed. Role: {auth_cookie.get('role') if auth_cookie else 'None'}")
     st.error("Access denied. Admin privileges required.")
+    st.markdown("[← Go back to login page](../)")
     st.stop()
+
+print("Admin access verified successfully")
 
 # Clean and minimal CSS - no interference with toggle button
 st.markdown("""
@@ -271,6 +374,57 @@ st.markdown("""
     
     .stSidebar button:hover {
         background-color: rgba(255,255,255,0.2) !important;
+    }
+    
+    /* Active Users Status Cards */
+    .user-status-card {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 16px;
+        margin: 8px 0;
+        transition: all 0.2s ease;
+    }
+    
+    .user-status-card:hover {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transform: translateY(-1px);
+    }
+    
+    .status-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: 600;
+        font-size: 14px;
+    }
+    
+    .status-online {
+        color: #22c55e;
+    }
+    
+    .status-away {
+        color: #f59e0b;
+    }
+    
+    .status-idle {
+        color: #f97316;
+    }
+    
+    .user-info-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr;
+        gap: 16px;
+        align-items: center;
+        padding: 12px 0;
+    }
+    
+    .activity-metrics {
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        border-radius: 12px;
+        padding: 20px;
+        margin: 16px 0;
+        border: 1px solid #bae6fd;
     }
     
     /* Custom sidebar components */
@@ -391,8 +545,23 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Main content area with dynamic tabs
+# Initialize admin navigation state - restore from session only on first load
+if "admin_selected_tab" not in st.session_state:
+    # First load - try to restore from session
+    if auth_cookie and 'current_admin_tab' in auth_cookie:
+        st.session_state["admin_selected_tab"] = auth_cookie['current_admin_tab']
+    else:
+        st.session_state["admin_selected_tab"] = "Pending Approvals"
+
 selected_tab = st.session_state.get("admin_selected_tab", "Pending Approvals")
+
+# Update admin session activity and preserve current tab
+try:
+    current_tab = st.session_state.get("admin_selected_tab", "Pending Approvals") 
+    auth_cookie['current_admin_tab'] = current_tab
+    session_manager.save_session(auth_cookie)
+except Exception as e:
+    print(f"Admin session update error: {e}")
 
 # Header with selected tab name
 st.markdown(f"<h1 style='color: #172087;'>Admin Dashboard - {selected_tab}</h1>", unsafe_allow_html=True)
@@ -455,6 +624,167 @@ if selected_tab == "Pending Approvals":
                                 st.warning("User rejected, but email notification failed.")
                             st.rerun()
 
+elif selected_tab == "Active Users":
+    st.markdown("<h2>Active Users Online</h2>", unsafe_allow_html=True)
+    
+    # Get active users data
+    active_users = get_active_users()
+    
+    # Auto-refresh functionality
+    col1, col2, col3 = st.columns([2, 1, 1])
+    with col1:
+        st.markdown(f"**Total Active Users:** {len(active_users)}")
+    with col2:
+        auto_refresh = st.checkbox("Auto-refresh (30s)", value=False, key="auto_refresh_users")
+    with col3:
+        if st.button("⟳ Refresh Now", key="manual_refresh_users"):
+            st.rerun()
+    
+    # Auto-refresh timer
+    if auto_refresh:
+        time.sleep(30)
+        st.rerun()
+    
+    if not active_users:
+        st.info("No users are currently active.")
+        st.markdown("---")
+        st.markdown("**Status Definitions:**")
+        st.markdown("- **Online:** Active within last 5 minutes")
+        st.markdown("- **Away:** Active within last 15 minutes") 
+        st.markdown("- **Idle:** Active within last 30 minutes")
+        
+    else:
+        # Professional status cards layout
+        st.markdown("### Current Active Sessions")
+        
+        # Group users by status for better organization
+        online_users = [u for u in active_users if u['status'] == 'online']
+        away_users = [u for u in active_users if u['status'] == 'away']
+        idle_users = [u for u in active_users if u['status'] == 'idle']
+        
+        # Status summary tabs
+        tab1, tab2, tab3 = st.tabs([
+            f"● Online ({len(online_users)})",
+            f"● Away ({len(away_users)})", 
+            f"● Idle ({len(idle_users)})"
+        ])
+        
+        with tab1:
+            if online_users:
+                for user in online_users:
+                    with st.container():
+                        col1, col2, col3, col4 = st.columns([3, 2, 2, 2])
+                        
+                        with col1:
+                            st.markdown(f"**{user['full_name']}** (`{user['username']}`)")
+                            st.caption(f"Role: {user['role'].title()}")
+                        
+                        with col2:
+                            st.markdown('<span style="color: #22c55e;">● **Online**</span>', unsafe_allow_html=True)
+                            st.caption("Active now")
+                        
+                        with col3:
+                            st.markdown(f"**Last Activity:**")
+                            st.caption(format_time_ago(user['last_activity']))
+                        
+                        with col4:
+                            st.markdown(f"**Session Started:**")
+                            session_start = user.get('session_start', 'unknown')
+                            if session_start != 'unknown':
+                                try:
+                                    start_time = datetime.fromisoformat(session_start)
+                                    st.caption(start_time.strftime('%H:%M'))
+                                except:
+                                    st.caption("Unknown")
+                            else:
+                                st.caption("Unknown")
+                        
+                        st.markdown("---")
+            else:
+                st.info("No users currently online.")
+        
+        with tab2:
+            if away_users:
+                for user in away_users:
+                    with st.container():
+                        col1, col2, col3, col4 = st.columns([3, 2, 2, 2])
+                        
+                        with col1:
+                            st.markdown(f"**{user['full_name']}** (`{user['username']}`)")
+                            st.caption(f"Role: {user['role'].title()}")
+                        
+                        with col2:
+                            st.markdown('<span style="color: #f59e0b;">● **Away**</span>', unsafe_allow_html=True)
+                            st.caption("Recently active")
+                        
+                        with col3:
+                            st.markdown(f"**Last Activity:**")
+                            st.caption(format_time_ago(user['last_activity']))
+                        
+                        with col4:
+                            st.markdown(f"**Session Started:**")
+                            session_start = user.get('session_start', 'unknown')
+                            if session_start != 'unknown':
+                                try:
+                                    start_time = datetime.fromisoformat(session_start)
+                                    st.caption(start_time.strftime('%H:%M'))
+                                except:
+                                    st.caption("Unknown")
+                            else:
+                                st.caption("Unknown")
+                        
+                        st.markdown("---")
+            else:
+                st.info("No users currently away.")
+        
+        with tab3:
+            if idle_users:
+                for user in idle_users:
+                    with st.container():
+                        col1, col2, col3, col4 = st.columns([3, 2, 2, 2])
+                        
+                        with col1:
+                            st.markdown(f"**{user['full_name']}** (`{user['username']}`)")
+                            st.caption(f"Role: {user['role'].title()}")
+                        
+                        with col2:
+                            st.markdown('<span style="color: #f97316;">● **Idle**</span>', unsafe_allow_html=True)
+                            st.caption("Inactive")
+                        
+                        with col3:
+                            st.markdown(f"**Last Activity:**")
+                            st.caption(format_time_ago(user['last_activity']))
+                        
+                        with col4:
+                            st.markdown(f"**Session Started:**")
+                            session_start = user.get('session_start', 'unknown')
+                            if session_start != 'unknown':
+                                try:
+                                    start_time = datetime.fromisoformat(session_start)
+                                    st.caption(start_time.strftime('%H:%M'))
+                                except:
+                                    st.caption("Unknown")
+                            else:
+                                st.caption("Unknown")
+                        
+                        st.markdown("---")
+            else:
+                st.info("No users currently idle.")
+        
+        # Activity metrics
+        st.markdown("---")
+        st.markdown("### Activity Metrics")
+        
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Total Active", len(active_users))
+        with col2:
+            st.metric("Online Now", len(online_users), delta=f"{len(online_users)}")
+        with col3:
+            st.metric("Away", len(away_users), delta=f"{len(away_users)}")
+        with col4:
+            st.metric("Idle", len(idle_users), delta=f"{len(idle_users)}")
+
 elif selected_tab == "All Users":
     st.markdown("<h2>All Users</h2>", unsafe_allow_html=True)
     
@@ -514,18 +844,6 @@ elif selected_tab == "System Settings":
         st.metric("Total Users", total_users)
         st.metric("Approved Users", approved_users)
         st.metric("Pending Approvals", pending_users)
-    
-    with col2:
-        st.markdown("### Quick Actions")
-        
-        if st.button("Refresh User Data", key="settings_refresh"):
-            st.rerun()
-        
-        if st.button("Export User Report", key="settings_export"):
-            st.info("Export functionality coming soon!")
-        
-        if st.button("System Maintenance", key="settings_maintenance"):
-            st.info("Maintenance mode coming soon!")
 
 elif selected_tab == "Deleted Users":
     st.markdown("<h2>Deleted Users</h2>", unsafe_allow_html=True)
@@ -576,13 +894,10 @@ with st.sidebar:
     # Navigation section
     st.subheader("Navigation")
     
-    # Initialize session state for navigation
-    if "admin_selected_tab" not in st.session_state:
-        st.session_state.admin_selected_tab = "Pending Approvals"
-    
     # Navigation buttons
     admin_tabs = [
         "Pending Approvals",
+        "Active Users",
         "All Users", 
         "System Settings",
         "Deleted Users"
@@ -596,26 +911,20 @@ with st.sidebar:
     # Divider
     st.markdown('<div class="nav-divider"></div>', unsafe_allow_html=True)
     
-    # Quick actions section
-    st.subheader("Quick Actions")
-    
-    if st.button("Refresh Data", key="refresh_data", use_container_width=True):
-        st.rerun()
-    
-    if st.button("Export Report", key="export_report", use_container_width=True):
-        st.info("Export functionality coming soon!")
-    
     # System stats section
     users = load_users()
+    active_users = get_active_users()
     total_users = len(users)
     approved_users = len([u for u in users.values() if u.get("approved")])
     pending_users = total_users - approved_users
+    online_count = len([u for u in active_users if u['status'] == 'online'])
     
     st.markdown(f"""
         <div class="admin-stats">
             <h4>System Overview</h4>
             <div class="stats-info">Users: {total_users}</div>
             <div class="stats-info">Active: {approved_users}</div>
+            <div class="stats-info">Online: {online_count}</div>
             <div class="stats-info">Pending: {pending_users}</div>
         </div>
     """, unsafe_allow_html=True)
