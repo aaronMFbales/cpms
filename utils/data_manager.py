@@ -79,6 +79,37 @@ class DataManager:
             columns = ["Encoder"] + columns
         
         return all_data, columns
+    
+    def user_has_data(self, username):
+        """Check if a user has any data in any sheet"""
+        try:
+            user_dir = os.path.join(self.data_dir, f"user_{username}")
+            if not os.path.exists(user_dir):
+                return False
+            
+            # Check all possible sheet files
+            sheet_names = [
+                "Business Owner", "Business Profile", "Client", "Business Registration",
+                "Business Financial Structure", "Market Import", "Product Service Lines",
+                "Employment Statistics", "Assistance", "Market Export", "Jobs Generated",
+                "Business Contact Information", "Market Domestic"
+            ]
+            
+            for sheet_name in sheet_names:
+                file_path = os.path.join(user_dir, f"{sheet_name}.json")
+                if os.path.exists(file_path):
+                    try:
+                        with open(file_path, 'r', encoding='utf-8') as f:
+                            user_data = json.load(f)
+                        data = user_data.get("data", [])
+                        if data and len(data) > 0:
+                            return True
+                    except:
+                        continue
+            
+            return False
+        except Exception as e:
+            return False
 
 # Global data manager instance
 data_manager = DataManager()

@@ -112,7 +112,7 @@ def show():
         st.session_state["authenticated"] = False
 
     if st.session_state["authenticated"]:
-        st.switch_page("modules/dashboard.py")  # ⬅️ Redirect to dashboard
+        st.switch_page("modules/dashboard.py")  # Redirect to dashboard
 
     # Center everything using a single centered column - adjusted to move form left
     col1, col2, col3 = st.columns([1.3, 1, 1.2])

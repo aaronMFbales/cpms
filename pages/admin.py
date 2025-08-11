@@ -300,6 +300,208 @@ def send_rejection_notification(user_data):
         st.error(f"Failed to send rejection email: {str(e)}")
         return False
 
+def check_user_duplicates(username):
+    """Check for duplicates in a specific user's data"""
+    try:
+        from utils.data_manager import data_manager
+        import pandas as pd
+        
+        duplicate_results = {}
+        
+        # Define fields to check for duplicates in each sheet
+        duplicate_check_fields = {
+            "Client": ["First Name", "Last Name", "Full Name", "Business Name", "Email", "Contact Number"],
+            "Business Owner": ["First Name", "Last Name", "Full Name", "Business Name", "Email", "Contact Number"],
+            "Business Profile": ["Business Name", "Business Registration Number", "TIN", "Email"],
+            "Business Registration": ["Business Name", "Registration Number", "TIN"],
+            "Business Contact Information": ["Business Name", "Email", "Contact Number"],
+            "Business Financial Structure": ["Business Name", "TIN"],
+            "Market Domestic": ["Business Name", "Product/Service"],
+            "Market Export": ["Business Name", "Product/Service", "Destination Country"],
+            "Market Import": ["Business Name", "Product/Service", "Source Country"],
+            "Product Service Lines": ["Business Name", "Product/Service Name"],
+            "Employment Statistics": ["Business Name", "Employee Name"],
+            "Assistance": ["Business Name", "Beneficiary Name"],
+            "Jobs Generated": ["Business Name", "Job Title"]
+        }
+        
+        for sheet_name, fields_to_check in duplicate_check_fields.items():
+            try:
+                # Load data for this sheet
+                data, columns = data_manager.load_user_data(username, sheet_name)
+                if not data or not columns:
+                    continue
+                
+                df = pd.DataFrame(data, columns=columns)
+                if df.empty:
+                    continue
+                
+                sheet_duplicates = {}
+                
+                # Check each field for duplicates
+                for field in fields_to_check:
+                    if field in df.columns:
+                        # Find duplicates (non-empty values only)
+                        field_data = df[field].dropna()
+                        field_data = field_data[field_data.astype(str).str.strip() != '']
+                        
+                        if len(field_data) > 1:
+                            value_counts = field_data.value_counts()
+                            duplicates = value_counts[value_counts > 1]
+                            
+                            if not duplicates.empty:
+                                duplicate_list = []
+                                for value, count in duplicates.items():
+                                    duplicate_list.append({
+                                        'value': str(value),
+                                        'count': int(count)
+                                    })
+                                sheet_duplicates[field] = duplicate_list
+                
+                if sheet_duplicates:
+                    duplicate_results[sheet_name] = sheet_duplicates
+                    
+            except Exception as e:
+                continue
+        
+        return duplicate_results
+        
+    except Exception as e:
+        return {}
+
+def get_user_data_summary(username):
+    """Get summary of user's data across all sheets"""
+    try:
+        from utils.data_manager import data_manager
+        
+        summary = {}
+        sheet_names = [
+            "Business Owner", "Business Profile", "Client", "Business Registration",
+            "Business Financial Structure", "Market Import", "Product Service Lines",
+            "Employment Statistics", "Assistance", "Market Export", "Jobs Generated",
+            "Business Contact Information", "Market Domestic"
+        ]
+        
+        for sheet_name in sheet_names:
+            try:
+                data, columns = data_manager.load_user_data(username, sheet_name)
+                if data and columns:
+                    summary[sheet_name] = len(data)
+                else:
+                    summary[sheet_name] = 0
+            except:
+                summary[sheet_name] = 0
+        
+        return summary
+        
+    except Exception as e:
+        return {}
+
+def check_system_wide_duplicates():
+    """Check for duplicates across all users' data - like scanning an entire Excel workbook"""
+    try:
+        from utils.data_manager import data_manager
+        import pandas as pd
+        
+        # Get all users
+        all_users = load_users()
+        regular_users = {k: v for k, v in all_users.items() if v.get("role") != "admin"}
+        
+        system_duplicates = {}
+        
+        # Define sheets and key fields to check for system-wide duplicates
+        sheet_configs = {
+            "Client": {
+                "key_fields": ["Business Name", "Email", "Contact Number", "TIN"],
+                "identity_fields": ["First Name", "Last Name", "Full Name"]
+            },
+            "Business Owner": {
+                "key_fields": ["Business Name", "Email", "Contact Number", "TIN"],
+                "identity_fields": ["First Name", "Last Name", "Full Name"]
+            },
+            "Business Profile": {
+                "key_fields": ["Business Name", "Business Registration Number", "TIN", "Email"],
+                "identity_fields": ["Business Name"]
+            },
+            "Business Registration": {
+                "key_fields": ["Business Name", "Registration Number", "TIN"],
+                "identity_fields": ["Business Name"]
+            },
+            "Business Contact Information": {
+                "key_fields": ["Business Name", "Email", "Contact Number"],
+                "identity_fields": ["Business Name"]
+            }
+        }
+        
+        for sheet_name, config in sheet_configs.items():
+            # Collect all data from all users for this sheet
+            all_sheet_data = []
+            
+            for username in regular_users.keys():
+                try:
+                    data, columns = data_manager.load_user_data(username, sheet_name)
+                    if data and columns:
+                        df = pd.DataFrame(data, columns=columns)
+                        if not df.empty:
+                            # Add encoder info to track who entered what
+                            df['Encoder'] = username
+                            all_sheet_data.append(df)
+                except:
+                    continue
+            
+            if not all_sheet_data:
+                continue
+                
+            # Combine all users' data for this sheet
+            combined_df = pd.concat(all_sheet_data, ignore_index=True)
+            
+            sheet_duplicates = {}
+            
+            # Check each key field for cross-user duplicates
+            for field in config["key_fields"]:
+                if field in combined_df.columns:
+                    # Find duplicates across different users
+                    field_data = combined_df[field].dropna()
+                    field_data = field_data[field_data.astype(str).str.strip() != '']
+                    
+                    if len(field_data) > 1:
+                        # Group by field value and check for multiple encoders
+                        for value in field_data.unique():
+                            matching_rows = combined_df[combined_df[field] == value]
+                            encoders = matching_rows['Encoder'].unique()
+                            
+                            # Only flag if same value entered by different encoders OR multiple times by same encoder
+                            if len(matching_rows) > 1 and (len(encoders) > 1 or len(matching_rows) > len(encoders)):
+                                if field not in sheet_duplicates:
+                                    sheet_duplicates[field] = []
+                                
+                                # Create detailed duplicate info
+                                encoder_details = []
+                                for encoder in encoders:
+                                    encoder_rows = matching_rows[matching_rows['Encoder'] == encoder]
+                                    encoder_details.append({
+                                        'encoder': encoder,
+                                        'count': len(encoder_rows),
+                                        'rows': encoder_rows.index.tolist()
+                                    })
+                                
+                                sheet_duplicates[field].append({
+                                    'value': str(value),
+                                    'total_occurrences': len(matching_rows),
+                                    'encoders_involved': len(encoders),
+                                    'encoder_details': encoder_details,
+                                    'cross_encoder': len(encoders) > 1
+                                })
+            
+            if sheet_duplicates:
+                system_duplicates[sheet_name] = sheet_duplicates
+        
+        return system_duplicates
+        
+    except Exception as e:
+        st.error(f"Error checking system-wide duplicates: {str(e)}")
+        return {}
+
 st.set_page_config(page_title="CPMS Admin", page_icon="", layout="wide")
 
 # Admin page session restoration - make it completely self-sufficient
@@ -829,6 +1031,196 @@ elif selected_tab == "All Users":
                         else:
                             st.error("Please check the confirmation box to delete this user.")
 
+elif selected_tab == "User Data Management":
+    st.markdown("<h2>User Data Management</h2>", unsafe_allow_html=True)
+    
+    # Get all users
+    all_users = load_users()
+    regular_users = {k: v for k, v in all_users.items() if v.get("role") != "admin"}
+    
+    if regular_users:
+        st.markdown(f"### {len(regular_users)} Registered Users")
+        
+        # Check for user data files
+        from utils.data_manager import data_manager
+        
+        for username, user_data in regular_users.items():
+            user_name = f"{user_data.get('first_name', '')} {user_data.get('last_name', '')}".strip()
+            display_name = user_name if user_name else username
+            
+            # Check if user has data
+            has_data = data_manager.user_has_data(username)
+            status_icon = "[DATA]" if has_data else "[EMPTY]"
+            status_text = "Has Data" if has_data else "No Data"
+            
+            # Create expandable section for each user
+            with st.expander(f"{status_icon} {display_name} ({username}) - {status_text}"):
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    st.write(f"**Email:** {user_data.get('email', 'N/A')}")
+                    st.write(f"**Status:** {'Approved' if user_data.get('approved') else 'Pending'}")
+                
+                with col2:
+                    if has_data:
+                        # Button to check duplicates for this user
+                        if st.button(f"Check Duplicates", key=f"check_dupes_{username}", use_container_width=True):
+                            st.session_state[f"show_duplicates_{username}"] = True
+                            st.rerun()
+                        
+                        # Button to view data summary
+                        if st.button(f"View Data Summary", key=f"view_summary_{username}", use_container_width=True):
+                            st.session_state[f"show_summary_{username}"] = True
+                            st.rerun()
+                
+                # Show duplicates if requested
+                if st.session_state.get(f"show_duplicates_{username}", False):
+                    st.markdown("**Duplicate Check Results:**")
+                    duplicates = check_user_duplicates(username)
+                    
+                    if duplicates:
+                        for sheet_name, sheet_duplicates in duplicates.items():
+                            if sheet_duplicates:
+                                st.warning(f"**{sheet_name}:**")
+                                for field, duplicate_list in sheet_duplicates.items():
+                                    if duplicate_list:
+                                        st.write(f"• **{field}:** {len(duplicate_list)} duplicate(s)")
+                                        for dup in duplicate_list:
+                                            st.write(f"  - '{dup['value']}' appears {dup['count']} times")
+                    else:
+                        st.success("No duplicates found!")
+                    
+                    if st.button(f"Close Results", key=f"close_dupes_{username}"):
+                        st.session_state[f"show_duplicates_{username}"] = False
+                        st.rerun()
+                
+                # Show data summary if requested
+                if st.session_state.get(f"show_summary_{username}", False):
+                    st.markdown("**Data Summary:**")
+                    summary = get_user_data_summary(username)
+                    
+                    if summary:
+                        for sheet_name, count in summary.items():
+                            if count > 0:
+                                st.write(f"• **{sheet_name}:** {count} records")
+                    else:
+                        st.info("No data found")
+                    
+                    if st.button(f"Close Summary", key=f"close_summary_{username}"):
+                        st.session_state[f"show_summary_{username}"] = False
+                        st.rerun()
+    else:
+        st.info("No regular users registered yet")
+
+elif selected_tab == "System Data Analysis":
+    st.markdown("<h2>System Data Analysis</h2>", unsafe_allow_html=True)
+    st.markdown("*Comprehensive data scanning across all users - like analyzing an entire Excel workbook*")
+    
+    # System-wide duplicate detection
+    st.markdown("### System-Wide Duplicate Detection")
+    st.info("This tool scans ALL user data to find identical entries across different encoders, helping identify data redundancy and potential coordination issues.")
+    
+    if st.button("Scan All User Data for Duplicates", type="primary", use_container_width=True):
+        with st.spinner("Scanning all user data... This may take a moment."):
+            system_duplicates = check_system_wide_duplicates()
+        
+        if system_duplicates:
+            st.markdown("### System-Wide Duplicates Found")
+            
+            for sheet_name, sheet_duplicates in system_duplicates.items():
+                st.markdown(f"#### {sheet_name} Sheet")
+                
+                for field, duplicates in sheet_duplicates.items():
+                    st.markdown(f"**{field} Duplicates:**")
+                    
+                    for dup_info in duplicates:
+                        value = dup_info['value']
+                        total = dup_info['total_occurrences']
+                        encoder_count = dup_info['encoders_involved']
+                        is_cross_encoder = dup_info['cross_encoder']
+                        
+                        # Color code based on severity
+                        if is_cross_encoder:
+                            st.error(f"**CRITICAL**: '{value}' - {total} occurrences across {encoder_count} different encoders")
+                        else:
+                            st.warning(f"**WARNING**: '{value}' - {total} duplicate entries by same encoder")
+                        
+                        # Show encoder details
+                        for encoder_detail in dup_info['encoder_details']:
+                            encoder = encoder_detail['encoder']
+                            count = encoder_detail['count']
+                            st.write(f"   • **{encoder}**: {count} entries")
+                        
+                        st.write("")  # Add spacing
+        else:
+            st.success("**No system-wide duplicates found!** All data appears to be unique across all users.")
+    
+    st.markdown("---")
+    
+    # Data distribution analysis
+    st.markdown("### Data Distribution Analysis")
+    
+    if st.button("Analyze Data Distribution", type="secondary", use_container_width=True):
+        st.markdown("#### User Data Volume Analysis")
+        
+        # Get all users and their data counts
+        all_users = load_users()
+        regular_users = {k: v for k, v in all_users.items() if v.get("role") != "admin"}
+        
+        from utils.data_manager import data_manager
+        
+        user_data_summary = {}
+        total_records = 0
+        
+        for username in regular_users.keys():
+            user_summary = get_user_data_summary(username)
+            user_total = sum(user_summary.values())
+            user_data_summary[username] = {
+                'total_records': user_total,
+                'sheet_breakdown': user_summary
+            }
+            total_records += user_total
+        
+        # Display summary metrics
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            st.metric("Total System Records", total_records)
+        with col2:
+            st.metric("Active Data Users", len([u for u in user_data_summary.values() if u['total_records'] > 0]))
+        with col3:
+            st.metric("Empty Users", len([u for u in user_data_summary.values() if u['total_records'] == 0]))
+        with col4:
+            avg_records = total_records / len(regular_users) if regular_users else 0
+            st.metric("Avg Records/User", f"{avg_records:.1f}")
+        
+        # Show per-user breakdown
+        st.markdown("#### Per-User Data Breakdown")
+        
+        # Sort users by total records (descending)
+        sorted_users = sorted(user_data_summary.items(), key=lambda x: x[1]['total_records'], reverse=True)
+        
+        for username, data_info in sorted_users:
+            user_data = regular_users[username]
+            user_name = f"{user_data.get('first_name', '')} {user_data.get('last_name', '')}".strip()
+            display_name = user_name if user_name else username
+            
+            total = data_info['total_records']
+            
+            if total > 0:
+                with st.expander(f"[DATA] {display_name} ({username}) - {total} total records"):
+                    # Show sheet breakdown
+                    sheet_data = data_info['sheet_breakdown']
+                    active_sheets = {k: v for k, v in sheet_data.items() if v > 0}
+                    
+                    if active_sheets:
+                        cols = st.columns(min(3, len(active_sheets)))
+                        for i, (sheet, count) in enumerate(active_sheets.items()):
+                            with cols[i % 3]:
+                                st.metric(sheet, count)
+            else:
+                st.info(f"[EMPTY] {display_name} ({username}) - No data entered")
+
 elif selected_tab == "System Settings":
     st.markdown("<h2>System Settings</h2>", unsafe_allow_html=True)
     
@@ -898,7 +1290,9 @@ with st.sidebar:
     admin_tabs = [
         "Pending Approvals",
         "Active Users",
-        "All Users", 
+        "All Users",
+        "User Data Management",
+        "System Data Analysis", 
         "System Settings",
         "Deleted Users"
     ]

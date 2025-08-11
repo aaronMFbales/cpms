@@ -7,7 +7,7 @@ import os
 
 def show_js_error_recovery():
     """Show error recovery page for JavaScript module issues"""
-    st.error("⚠️ **Application Loading Issue Detected**")
+    st.error("**Application Loading Issue Detected**")
     
     st.markdown("""
     ### What happened?
@@ -22,11 +22,11 @@ def show_js_error_recovery():
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        if st.button("🔄 **Refresh Page**", use_container_width=True):
+        if st.button("**Refresh Page**", use_container_width=True):
             st.javascript("window.location.reload(true);")
     
     with col2:
-        if st.button("🗑️ **Clear Cache**", use_container_width=True):
+        if st.button("**Clear Cache**", use_container_width=True):
             st.javascript("""
                 if ('caches' in window) {
                     caches.keys().then(function(names) {
@@ -41,12 +41,12 @@ def show_js_error_recovery():
             """)
     
     with col3:
-        if st.button("🏠 **Go Home**", use_container_width=True):
+        if st.button("**Go Home**", use_container_width=True):
             st.javascript("window.location.href = '/';")
     
     st.markdown("---")
     
-    with st.expander("🛠️ **Advanced Troubleshooting**"):
+    with st.expander("**Advanced Troubleshooting**"):
         st.markdown("""
         **For IT Support:**
         

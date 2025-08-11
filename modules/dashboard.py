@@ -4826,14 +4826,14 @@ def show():
                 
                 # Confirmation dialog for Delete All Rows
                 if st.session_state.get(f"show_delete_all_confirm_{selected}", False):
-                    st.warning("⚠️ **CONFIRMATION REQUIRED**")
+                    st.warning("**CONFIRMATION REQUIRED**")
                     st.write(f"Are you sure you want to delete **ALL {len(df)} rows** from the {selected} sheet?")
                     st.write("This action cannot be undone (except with the Undo button).")
                     
                     conf_col1, conf_col2 = st.columns(2)
                     
                     with conf_col1:
-                        if st.button("✅ Yes, Delete All", key=f"confirm_delete_all_{selected}", type="primary", use_container_width=True):
+                        if st.button("Yes, Delete All", key=f"confirm_delete_all_{selected}", type="primary", use_container_width=True):
                             # Store current data for undo functionality
                             st.session_state[undo_key] = df.copy()
                             # Clear all data
@@ -4845,7 +4845,7 @@ def show():
                             st.rerun()
                     
                     with conf_col2:
-                        if st.button("❌ Cancel", key=f"cancel_delete_all_{selected}", type="secondary", use_container_width=True):
+                        if st.button("Cancel", key=f"cancel_delete_all_{selected}", type="secondary", use_container_width=True):
                             # Clear confirmation dialog
                             st.session_state[f"show_delete_all_confirm_{selected}"] = False
                             st.rerun()
