@@ -47,119 +47,101 @@ def save_users(users):
 def show():
     st.set_page_config(page_title="CPMS Login", layout="centered")
 
-    # Hide Streamlit elements and style the button
-    hide_st_style = """
+    # Robust CSS with specific targeting for login page only
+    login_css = """
         <style>
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
-    
-    /* Hide the entire app header including profile */
-    div[data-testid="stAppViewContainer"] > section:first-child {
-        display: none !important;
-    }
-    
-    /* Hide Streamlit's top toolbar */
-    .stAppToolbar {
-        display: none !important;
-    }
-    
-    /* Hide deploy button and GitHub info */
-    .stActionButton {
-        display: none !important;
-    }
-    
-    /* Hide sidebar on login page */
-    section[data-testid="stSidebar"] {
-        display: none !important;
-    }
-    
-    /* Hide sidebar toggle button */
-    [data-testid="collapsedControl"] {
-        display: none !important;
-    }
-    
-    /* Hide any custom sidebar elements */
-    .custom-sidebar {
-        display: none !important;
-    }
-    
-    .stButton>button {
-        width: 30%;
-        float: right;
-        margin-right: 100px;
-        background-color: #f0f0f0;
-        color: black;
-        border: none;
-        transition: background-color 0.3s ease;
-    }
-    .stButton>button:hover {
-        background-color: #1a2b5c;
-        color: white;
-    }
-    /* Move entire content upward */
-    div.block-container {
-        padding-top: 20px !important;
-    }
-    /* Hide Streamlit's "Please Enter to apply" helper text */
-    span[data-baseweb="form-control-caption"] {
-        display: none !important;
-    }
-    
-    /* Hide profile and creator information */
-    div[data-testid="stAppViewContainer"] > div:first-child {
-        display: none !important;
-    }
-    
-    /* Hide GitHub profile badge/info */
-    div[data-testid="stAppViewBlockContainer"] > div:first-child {
-        display: none !important;
-    }
-    
-    /* Hide any footer or creator attribution */
-    div[data-testid="stBottom"] {
-        display: none !important;
-    }
-    
-    /* Hide Streamlit's default app header */
-    header[data-testid="stHeader"] {
-        display: none !important;
-    }
-    
-    /* Alternative selectors to hide profile info */
-    .st-emotion-cache-18ni7ap,
-    .st-emotion-cache-6qob1r,
-    [data-testid="stAppViewContainer"] > div:nth-child(1) {
-        display: none !important;
-    }
-    
-    /* Hide any "created by" or attribution text */
-    div:contains("created by"),
-    div:contains("Aaron Bales"),
-    small:contains("created by"),
-    p:contains("created by") {
-        display: none !important;
-    }
-    
-    /* Hide Streamlit's "Hosted with Streamlit" badge */
-    .stAppDeployButton,
-    div[data-testid="stAppDeployButton"],
-    a[href*="streamlit.io"],
-    div:contains("Hosted with Streamlit"),
-    [data-testid="stBottom"],
-    .st-emotion-cache-h4xjwg {
-        display: none !important;
-    }
-    
-    /* Hide any floating badges or promotional content */
-    .stAppViewBlockContainer > div:last-child,
-    div[class*="floating"],
-    div[class*="badge"] {
-        display: none !important;
-    }
-    </style>
+        /* Login page specific CSS - use unique selectors to avoid conflicts */
+        .login-page-container #MainMenu {visibility: hidden;}
+        .login-page-container footer {visibility: hidden;}
+        .login-page-container header {visibility: hidden;}
+        
+        /* Hide the entire app header including profile - login page only */
+        .login-page-container div[data-testid="stAppViewContainer"] > section:first-child {
+            display: none !important;
+        }
+        
+        /* Hide Streamlit's top toolbar - login page only */
+        .login-page-container .stAppToolbar {
+            display: none !important;
+        }
+        
+        /* Hide deploy button and GitHub info - login page only */
+        .login-page-container .stActionButton {
+            display: none !important;
+        }
+        
+        /* Hide sidebar on login page only */
+        .login-page-container section[data-testid="stSidebar"] {
+            display: none !important;
+        }
+        
+        /* Hide sidebar toggle button - login page only */
+        .login-page-container [data-testid="collapsedControl"] {
+            display: none !important;
+        }
+        
+        /* Hide any custom sidebar elements - login page only */
+        .login-page-container .custom-sidebar {
+            display: none !important;
+        }
+        
+        /* Login button styling - specific to login page */
+        .login-page-container .stButton>button {
+            width: 30%;
+            float: right;
+            margin-right: 100px;
+            background-color: #f0f0f0;
+            color: black;
+            border: none;
+            transition: background-color 0.3s ease;
+        }
+        .login-page-container .stButton>button:hover {
+            background-color: #1a2b5c;
+            color: white;
+        }
+        
+        /* Move entire content upward - login page only */
+        .login-page-container div.block-container {
+            padding-top: 20px !important;
+        }
+        
+        /* Hide various Streamlit elements - login page specific */
+        .login-page-container span[data-baseweb="form-control-caption"],
+        .login-page-container div[data-testid="stAppViewContainer"] > div:first-child,
+        .login-page-container div[data-testid="stAppViewBlockContainer"] > div:first-child,
+        .login-page-container div[data-testid="stBottom"],
+        .login-page-container header[data-testid="stHeader"],
+        .login-page-container .st-emotion-cache-18ni7ap,
+        .login-page-container .st-emotion-cache-6qob1r,
+        .login-page-container .stAppDeployButton,
+        .login-page-container div[data-testid="stAppDeployButton"],
+        .login-page-container a[href*="streamlit.io"],
+        .login-page-container .st-emotion-cache-h4xjwg,
+        .login-page-container .stAppViewBlockContainer > div:last-child,
+        .login-page-container div[class*="floating"],
+        .login-page-container div[class*="badge"] {
+            display: none !important;
+        }
+        
+        /* Reset any inherited styles that might interfere */
+        .login-page-container {
+            background: white;
+            min-height: 100vh;
+        }
+        </style>
     """
-    st.markdown(hide_st_style, unsafe_allow_html=True)
+    
+    # Apply login page CSS with container wrapper (use unique key to prevent conflicts)
+    st.markdown(login_css, unsafe_allow_html=True)
+    
+    # Clear any previous page states that might interfere
+    if 'selected_nav_item' in st.session_state:
+        del st.session_state['selected_nav_item']
+    if 'selected_sheet' in st.session_state:
+        del st.session_state['selected_sheet']
+    
+    # Wrap everything in a container div for CSS targeting
+    st.markdown('<div class="login-page-container">', unsafe_allow_html=True)
 
     if "authenticated" not in st.session_state:
         st.session_state["authenticated"] = False
