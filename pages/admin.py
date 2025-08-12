@@ -744,6 +744,45 @@ st.markdown("""
     footer, .stAppViewContainer footer {
         display: none !important;
     }
+    
+    /* DTI Blue Button Styling */
+    .dti-blue-button {
+        background-color: #172087 !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 8px !important;
+        padding: 12px 24px !important;
+        font-weight: 600 !important;
+        font-size: 16px !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 2px 4px rgba(23, 32, 135, 0.2) !important;
+    }
+    
+    .dti-blue-button:hover {
+        background-color: #1e3a8a !important;
+        box-shadow: 0 4px 8px rgba(23, 32, 135, 0.3) !important;
+        transform: translateY(-1px) !important;
+    }
+    
+    .dti-blue-button:active {
+        background-color: #1d4ed8 !important;
+        transform: translateY(0) !important;
+    }
+    
+    /* Target specific button by its content */
+    button[kind="primary"]:has-text("Scan All User Data for Duplicates"),
+    button:contains("Scan All User Data for Duplicates") {
+        background-color: #172087 !important;
+        border-color: #172087 !important;
+        color: white !important;
+    }
+    
+    button[kind="primary"]:has-text("Scan All User Data for Duplicates"):hover,
+    button:contains("Scan All User Data for Duplicates"):hover {
+        background-color: #1e3a8a !important;
+        border-color: #1e3a8a !important;
+        box-shadow: 0 4px 8px rgba(23, 32, 135, 0.3) !important;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -1120,7 +1159,23 @@ elif selected_tab == "System Data Analysis":
     st.markdown("### System-Wide Duplicate Detection")
     st.info("This tool scans ALL user data to find identical entries across different encoders, helping identify data redundancy and potential coordination issues.")
     
-    if st.button("Scan All User Data for Duplicates", type="primary", use_container_width=True):
+    # Add custom CSS for this specific button
+    st.markdown("""
+        <style>
+        div[data-testid="stButton"] > button:first-child {
+            background-color: #172087 !important;
+            border-color: #172087 !important;
+            color: white !important;
+        }
+        div[data-testid="stButton"] > button:first-child:hover {
+            background-color: #1e3a8a !important;
+            border-color: #1e3a8a !important;
+            box-shadow: 0 4px 8px rgba(23, 32, 135, 0.3) !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+    
+    if st.button("Scan All User Data for Duplicates", type="primary", use_container_width=True, key="dti_scan_button"):
         with st.spinner("Scanning all user data... This may take a moment."):
             system_duplicates = check_system_wide_duplicates()
         
