@@ -55,7 +55,10 @@ def create_location_widgets():
         st.markdown('<h3 style="color: black;">Province <span style="color: red;">*</span></h3>', unsafe_allow_html=True)
         if st.session_state.loc_region:
             region_code = regions_df[regions_df['regDesc'] == st.session_state.loc_region]['regCode'].iloc[0]
-            provinces = provinces_df[provinces_df['regCode'] == region_code]['provDesc'].unique()
+            provinces = provinces_df[provinces_df['regCode'] == region_code]['provDesc'].unique().tolist()
+            # Always append 'CITY OF DAVAO' for Region XI
+            if st.session_state.loc_region == "REGION XI (DAVAO REGION)" and "CITY OF DAVAO" not in provinces:
+                provinces.append("CITY OF DAVAO")
             selected_province = st.selectbox("Select Province:", provinces, key="loc_province_select")
             
             # Update session state when province changes
@@ -70,8 +73,15 @@ def create_location_widgets():
     with col3:
         st.markdown('<h3 style="color: black;">City/Municipality <span style="color: red;">*</span></h3>', unsafe_allow_html=True)
         if st.session_state.loc_province:
-            province_code = provinces_df[provinces_df['provDesc'] == st.session_state.loc_province]['provCode'].iloc[0]
-            cities = cities_df[cities_df['provCode'] == province_code]['citymunDesc'].unique()
+            if st.session_state.loc_province == "CITY OF DAVAO":
+                cities = ["DAVAO CITY"]
+            else:
+                province_row = provinces_df[provinces_df['provDesc'] == st.session_state.loc_province]
+                if not province_row.empty:
+                    province_code = province_row['provCode'].iloc[0]
+                    cities = cities_df[cities_df['provCode'] == province_code]['citymunDesc'].unique()
+                else:
+                    cities = []
             selected_city = st.selectbox("Select City:", cities, key="loc_city_select")
             
             # Update session state when city changes
@@ -102,4 +112,4 @@ def create_location_widgets():
         "city": st.session_state.loc_city or selected_city,
         "barangay": st.session_state.loc_barangay or selected_barangay,
         "purok": "N/A"  # Purok data not available in standard PSGC
-    } 
+    }

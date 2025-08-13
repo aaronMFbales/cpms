@@ -6,5 +6,10 @@
   "employment_target": 40,
   "business_profiles_target": 40,
   "assistance_target": 40,
-  "jobs_generated_target": 40
+  "jobs_generated_target": 40,
+  "monthly_target": 50,
+  "monthly_client_target": 40,
+  "annual_business_profile_target": 300,
+  "employment_records_target": 150,
+  "jobs_generation_target": 90
 }

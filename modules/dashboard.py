@@ -72,7 +72,12 @@ def load_targets_from_file():
         'employment_target': 30,
         'business_profiles_target': 35,
         'assistance_target': 25,
-        'jobs_generated_target': 20
+        'jobs_generated_target': 20,
+        'monthly_target': 100,
+        'monthly_client_target': 60,
+        'annual_business_profile_target': 500,
+        'employment_records_target': 150,
+        'jobs_generation_target': 80
     }
     
     try:
@@ -1378,6 +1383,23 @@ def show():
             st.markdown(f"<h3 style='font-weight: 600; color: #172087;'>{st.session_state.selected_sheet}</h3>", unsafe_allow_html=True)
         
         with header_col2:
+            # Get user's first name for welcome message
+            auth_cookie = st.session_state.get("auth_cookie", {})
+            user_first_name = auth_cookie.get("first_name", "User")
+            
+            # Welcome message in top right with DTI blue theme
+            st.markdown(f"""
+                <h4 style="
+                    color: #172087;
+                    font-size: 30px;
+                    font-weight: 600;
+                    margin-bottom: 15px;
+                    margin-top: 0;
+                    text-align: right;
+                ">
+                    Welcome, {user_first_name}!
+                </h4>
+            """, unsafe_allow_html=True)
             # Enhanced search functionality with professional design
             st.markdown("""
                 <style>
@@ -1696,6 +1718,11 @@ def show():
                 st.session_state.business_profiles_target = saved_targets['business_profiles_target']
                 st.session_state.assistance_target = saved_targets['assistance_target']
                 st.session_state.jobs_generated_target = saved_targets['jobs_generated_target']
+                st.session_state.monthly_target = saved_targets['monthly_target']
+                st.session_state.monthly_client_target = saved_targets['monthly_client_target']
+                st.session_state.annual_business_profile_target = saved_targets['annual_business_profile_target']
+                st.session_state.employment_records_target = saved_targets['employment_records_target']
+                st.session_state.jobs_generation_target = saved_targets['jobs_generation_target']
                 st.session_state.targets_loaded = True
             
             # Target Setting Panel
@@ -1779,6 +1806,52 @@ def show():
                 with col3:
                     st.empty()  # Empty column for alignment
                 
+                # Third row of departments - New targets
+                st.markdown("---")  # Divider
+                st.markdown("**Additional Performance Targets**")
+                col1, col2, col3 = st.columns(3)
+                
+                with col1:
+                    st.markdown("**Monthly Targets**")
+                    new_monthly_target = st.selectbox(
+                        "Monthly Target:",
+                        options=list(range(1, 1001)),
+                        index=st.session_state.monthly_target - 1,
+                        key="monthly_target_selector"
+                    )
+                    
+                    new_monthly_client_target = st.selectbox(
+                        "Monthly Client Target:",
+                        options=list(range(1, 1001)),
+                        index=st.session_state.monthly_client_target - 1,
+                        key="monthly_client_target_selector"
+                    )
+                
+                with col2:
+                    st.markdown("**Annual & Employment Targets**")
+                    new_annual_business_profile_target = st.selectbox(
+                        "Annual Business Profile Target:",
+                        options=list(range(1, 2001)),
+                        index=st.session_state.annual_business_profile_target - 1,
+                        key="annual_business_profile_target_selector"
+                    )
+                    
+                    new_employment_records_target = st.selectbox(
+                        "Employment Records Target:",
+                        options=list(range(1, 1001)),
+                        index=st.session_state.employment_records_target - 1,
+                        key="employment_records_target_selector"
+                    )
+                
+                with col3:
+                    st.markdown("**Jobs & Generation**")
+                    new_jobs_generation_target = st.selectbox(
+                        "Jobs Generation Target:",
+                        options=list(range(1, 1001)),
+                        index=st.session_state.jobs_generation_target - 1,
+                        key="jobs_generation_target_selector"
+                    )
+                
                 # Update targets button
                 col1, col2, col3 = st.columns([1, 1, 1])
                 with col2:
@@ -1792,6 +1865,11 @@ def show():
                         st.session_state.business_profiles_target = new_business_profiles_target
                         st.session_state.assistance_target = new_assistance_target
                         st.session_state.jobs_generated_target = new_jobs_generated_target
+                        st.session_state.monthly_target = new_monthly_target
+                        st.session_state.monthly_client_target = new_monthly_client_target
+                        st.session_state.annual_business_profile_target = new_annual_business_profile_target
+                        st.session_state.employment_records_target = new_employment_records_target
+                        st.session_state.jobs_generation_target = new_jobs_generation_target
                         
                         # Save targets to persistent storage
                         targets_to_save = {
@@ -1802,7 +1880,12 @@ def show():
                             'employment_target': new_employment_target,
                             'business_profiles_target': new_business_profiles_target,
                             'assistance_target': new_assistance_target,
-                            'jobs_generated_target': new_jobs_generated_target
+                            'jobs_generated_target': new_jobs_generated_target,
+                            'monthly_target': new_monthly_target,
+                            'monthly_client_target': new_monthly_client_target,
+                            'annual_business_profile_target': new_annual_business_profile_target,
+                            'employment_records_target': new_employment_records_target,
+                            'jobs_generation_target': new_jobs_generation_target
                         }
                         save_targets_to_file(targets_to_save)
                         
@@ -2001,10 +2084,7 @@ def show():
                 """, unsafe_allow_html=True)
                 
                 # Calculate overall metrics based on actual navigation sheets with dynamic targets
-                total_target = (st.session_state.business_contact_target + 
-                              st.session_state.business_registration_target + 
-                              st.session_state.business_owner_target + 
-                              st.session_state.employment_target)
+                total_target = st.session_state.monthly_target
                 total_current = total_business_contacts + total_business_registrations + total_business_owners + total_employment
                 overall_progress = min(total_current / total_target, 1.0) if total_target > 0 else 0
                 overall_percent = int(overall_progress * 100)
@@ -2138,12 +2218,12 @@ def show():
                     </div>
                 """, unsafe_allow_html=True)
                 
-                # Target tracking based on actual navigation sheets
+                # Target tracking based on actual navigation sheets and user-set targets
                 targets = [
-                    {"name": "Monthly Client Target", "current": total_current, "target": 165, "unit": "records"},
-                    {"name": "Annual Business Profile Target", "current": total_business_profiles * 12, "target": 600, "unit": "profiles"},
-                    {"name": "Employment Records Target", "current": total_employment * 12, "target": 360, "unit": "records"},
-                    {"name": "Jobs Generation Target", "current": total_jobs_generated * 12, "target": 480, "unit": "jobs"},
+                    {"name": "Monthly Client Target", "current": total_current, "target": st.session_state.monthly_client_target, "unit": "records"},
+                    {"name": "Annual Business Profile Target", "current": total_business_profiles * 12, "target": st.session_state.annual_business_profile_target, "unit": "profiles"},
+                    {"name": "Employment Records Target", "current": total_employment * 12, "target": st.session_state.employment_records_target, "unit": "records"},
+                    {"name": "Jobs Generation Target", "current": total_jobs_generated * 12, "target": st.session_state.jobs_generation_target, "unit": "jobs"},
                 ]
                 
                 for target in targets:
@@ -4780,7 +4860,7 @@ def show():
             # After all form logic, always show the table for the selected sheet
 
             # Display the data table
-            st.markdown("### Current Data")
+            st.markdown("#### Current Data")
             
             # Show the data editor for the selected sheet
             edited_df = st.data_editor(
