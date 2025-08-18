@@ -566,16 +566,19 @@ st.markdown("""
         color: white !important;
     }
     
-    /* Sidebar button styling */
+    /* Sidebar button styling with white outline */
     .stSidebar button {
         color: white !important;
         background-color: rgba(255,255,255,0.1) !important;
-        border: 1px solid rgba(255,255,255,0.2) !important;
+        border: 2px solid #fff !important;
         border-radius: 8px !important;
+        box-shadow: 0 0 0 2px rgba(255,255,255,0.15) !important;
+        transition: border 0.2s, box-shadow 0.2s;
     }
-    
     .stSidebar button:hover {
         background-color: rgba(255,255,255,0.2) !important;
+        border: 2.5px solid #fff !important;
+        box-shadow: 0 0 0 3px rgba(255,255,255,0.25) !important;
     }
     
     /* Active Users Status Cards */
@@ -1434,9 +1437,41 @@ with st.sidebar:
     
     # Add some spacing before logout button
     st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
-    if st.button("Logout", key="sidebar_logout", type="primary", use_container_width=True):
+    # Custom styled Logout button for better visibility
+    logout_btn_css = """
+    <style>
+    .dti-logout-btn {
+        background-color: #172087 !important;
+        color: #fff !important;
+        border: 2.5px solid #fff !important;
+        border-radius: 8px !important;
+        padding: 16px 0 !important;
+        font-size: 18px !important;
+        font-weight: 700 !important;
+        width: 100% !important;
+        margin-top: 10px !important;
+        margin-bottom: 10px !important;
+        box-shadow: 0 2px 8px rgba(23,32,135,0.15) !important;
+        transition: background 0.2s, box-shadow 0.2s, border 0.2s;
+    }
+    .dti-logout-btn:hover {
+        background-color: #1e3a8a !important;
+        box-shadow: 0 4px 16px rgba(23,32,135,0.25) !important;
+        border: 3px solid #fff !important;
+    }
+    </style>
+    """
+    st.markdown(logout_btn_css, unsafe_allow_html=True)
+    if st.button("Logout", key="sidebar_logout", use_container_width=True):
         st.session_state["authenticated"] = False
         st.session_state["auth_cookie"] = None
         # Clear browser-specific session
         session_manager.clear_session()
-        st.switch_page("main.py") 
+        st.switch_page("main.py")
+    # Add custom class to the button using JavaScript
+    st.markdown("""
+    <script>
+    const logoutBtn = window.parent.document.querySelector('button[data-testid="sidebar_logout"]');
+    if (logoutBtn) { logoutBtn.classList.add('dti-logout-btn'); }
+    </script>
+    """, unsafe_allow_html=True)

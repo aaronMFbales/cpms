@@ -74,7 +74,7 @@ def show():
         /* Login form input field width adjustment */
         .stTextInput > div > div > input {
             width: 70% !important;
-            margin: 0 auto !important;
+            /* margin removed to fix unremovable space issue */
         }
         
         /* Login button styling */
