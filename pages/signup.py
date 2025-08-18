@@ -1,4 +1,14 @@
 import streamlit as st
+# ...existing code...
+
+# --- Make signup page stateless: clear session state except form fields ---
+form_keys = [
+    "first_name", "last_name", "email", "username", "password", "confirm_password", "organization", "position", "contact_number", "agree_terms"
+]
+for key in list(st.session_state.keys()):
+    if key not in form_keys:
+        del st.session_state[key]
+import streamlit as st
 import time
 import json
 import os
@@ -165,6 +175,23 @@ with col3:
 
 # Terms and Conditions - Full width
 st.markdown("### Terms and Conditions")
+with st.expander("Read Terms and Conditions"):
+    st.markdown("""
+    **1. Acceptance of Terms**  
+    By registering for an account, you agree to comply with and be bound by these Terms and Conditions. If you do not agree, please do not proceed with registration.
+    
+    **2. User Responsibilities**  
+    You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. You agree to provide accurate and complete information during registration.
+    
+    **3. Data Privacy**  
+    Your personal information will be handled in accordance with our privacy policy. We are committed to protecting your data and will not share it with unauthorized third parties.
+    
+    **4. System Usage**  
+    You agree to use this system only for lawful purposes and in a manner that does not infringe the rights of others or restrict their use of the system.
+    
+    **5. Modification of Terms**  
+    We reserve the right to update or modify these Terms and Conditions at any time. Continued use of your account after changes constitutes acceptance of those changes.
+    """)
 agree_terms = st.checkbox("I agree to the terms and conditions", key="agree_terms")
 
 col1, col2 = st.columns(2)
