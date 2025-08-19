@@ -1808,10 +1808,12 @@ def show():
                 
                 # Third row of departments - New targets
                 st.markdown("---")  # Divider
+                st.markdown("<div style='padding-top:32px'></div>", unsafe_allow_html=True)
                 st.markdown("**Additional Performance Targets**")
                 col1, col2, col3 = st.columns(3)
                 
                 with col1:
+                    st.markdown("<div style='padding-top:32px'></div>", unsafe_allow_html=True)
                     st.markdown("**Monthly Targets**")
                     new_monthly_target = st.selectbox(
                         "Monthly Target:",
@@ -1828,6 +1830,7 @@ def show():
                     )
                 
                 with col2:
+                    st.markdown("<div style='padding-top:32px'></div>", unsafe_allow_html=True)
                     st.markdown("**Annual & Employment Targets**")
                     new_annual_business_profile_target = st.selectbox(
                         "Annual Business Profile Target:",
@@ -1844,6 +1847,7 @@ def show():
                     )
                 
                 with col3:
+                    st.markdown("<div style='padding-top:32px'></div>", unsafe_allow_html=True)
                     st.markdown("**Jobs & Generation**")
                     new_jobs_generation_target = st.selectbox(
                         "Jobs Generation Target:",
@@ -2020,15 +2024,8 @@ def show():
             col1, col2 = st.columns([3, 2])
             
             with col1:
-                st.markdown("""
-                    <div style="background: white; padding: 35px 30px; border-radius: 12px; 
-                            box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
-                        <h3 style="color: #172087; margin: 0 0 25px 0; font-size: 1.4em; font-weight: 700;
-                                text-align: center; padding: 15px 0;">
-                            Department Performance Tracking
-                        </h3>
-                    </div>
-                """, unsafe_allow_html=True)
+                st.markdown("<div style='padding-top:32px'></div>", unsafe_allow_html=True)
+                st.markdown("## Department Performance Tracking", unsafe_allow_html=True)
                 
                 # Department data tracking based on navigation sheets with dynamic targets
                 departments = [
@@ -2073,15 +2070,8 @@ def show():
             
             with col2:
                 # Overall Performance Summary
-                st.markdown("""
-                    <div style="background: white; padding: 35px 30px; border-radius: 12px; 
-                            box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
-                        <h3 style="color: #172087; margin: 0 0 25px 0; font-size: 1.4em; font-weight: 700;
-                                text-align: center; padding: 15px 0;">
-                            Overall Performance
-                        </h3>
-                    </div>
-                """, unsafe_allow_html=True)
+                st.markdown("<div style='padding-top:32px'></div>", unsafe_allow_html=True)
+                st.markdown("## Overall Performance", unsafe_allow_html=True)
                 
                 # Calculate overall metrics based on actual navigation sheets with dynamic targets
                 total_target = st.session_state.monthly_target
@@ -2155,15 +2145,8 @@ def show():
             col1, col2 = st.columns(2)
             
             with col1:
-                st.markdown("""
-                    <div style="background: white; padding: 35px 30px; border-radius: 12px; 
-                            box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
-                        <h3 style="color: #172087; margin: 0 0 25px 0; font-size: 1.4em; font-weight: 700;
-                                text-align: center; padding: 15px 0;">
-                            Data Distribution Analysis
-                        </h3>
-                    </div>
-                """, unsafe_allow_html=True)
+                st.markdown("<div style='padding-top:32px'></div>", unsafe_allow_html=True)
+                st.markdown("## Data Distribution Analysis", unsafe_allow_html=True)
                 
                 # Data distribution chart
                 data_categories = []
@@ -2208,15 +2191,8 @@ def show():
                     """, unsafe_allow_html=True)
             
             with col2:
-                st.markdown("""
-                    <div style="background: white; padding: 35px 30px; border-radius: 12px; 
-                            box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
-                        <h3 style="color: #172087; margin: 0 0 25px 0; font-size: 1.4em; font-weight: 700;
-                                text-align: center; padding: 15px 0;">
-                            Performance Targets
-                        </h3>
-                    </div>
-                """, unsafe_allow_html=True)
+                st.markdown("<div style='padding-top:30px'></div>", unsafe_allow_html=True)
+                st.markdown("## Performance Targets", unsafe_allow_html=True)
                 
                 # Target tracking based on actual navigation sheets and user-set targets
                 targets = [
@@ -2230,6 +2206,7 @@ def show():
                     progress = min(target["current"] / target["target"], 1.0) if target["target"] > 0 else 0
                     progress_percent = int(progress * 100)
                     
+                    st.markdown("<div style='padding-top:40px'></div>", unsafe_allow_html=True)
                     st.markdown(f"""
                         <div style="background: #f8fafc; padding: 20px; border-radius: 10px; 
                                 margin-bottom: 15px; border-left: 3px solid #172087; margin-top: 15px; padding-top: 25px;">
