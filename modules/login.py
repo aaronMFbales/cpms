@@ -73,7 +73,7 @@ def show():
         
         /* Login form input field width adjustment */
         .stTextInput > div > div > input {
-            width: 70% !important;
+            width: 100% !important;
             /* margin removed to fix unremovable space issue */
         }
         
@@ -94,7 +94,7 @@ def show():
         
         /* Move content upward */
         div.block-container {
-            padding-top: 20px !important;
+            padding-top: 10px !important;
         }
         </style>
     """
@@ -115,15 +115,15 @@ def show():
         st.switch_page("modules/dashboard.py")  # Redirect to dashboard
 
     # Center everything using a single centered column - adjusted to move form left
-    col1, col2, col3 = st.columns([1.3, 1, 1.2])
+    col1, col2, col3 = st.columns([1.4, 1, 1.2])
     with col2:
         # Center the logo
         logo_path = "assets/dtilogo.png"
-        st.image(logo_path, width=350)  
+        st.image(logo_path, width=300)  
 
         # Center the title with slight left adjustment
         st.markdown(
-            "<h4 style='text-align: center; color: #263d81; font-weight: bold; font-size: 30px; white-space: nowrap; margin-left: -210px;'>"
+            "<h4 style='text-align: center; color: #263d81; font-weight: bold; font-size: 30px; white-space: nowrap; margin-left: -240px;'>"
             "DTI REGION XI - CLIENT PROFILE AND MONITORING SYSTEM"
             "</h4>",
             unsafe_allow_html=True
