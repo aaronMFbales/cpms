@@ -123,25 +123,32 @@ header {visibility: hidden;}
     background-color: #1a2b5c;
     color: white;
 }
-/* Add small margins for breathing room */
+/* Add large margins and padding for a spacious layout */
 div.block-container {
-    padding: 20px !important;
-    margin: 0 !important;
-    max-width: none !important;
+    padding: 60px 80px !important;
+    margin: 40px auto !important;
+    max-width: 900px !important;
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 8px 32px rgba(44,62,80,0.10);
 }
 .main .block-container {
-    padding: 20px !important;
-    margin: 0 !important;
-    max-width: none !important;
+    padding: 60px 80px !important;
+    margin: 40px auto !important;
+    max-width: 900px !important;
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 8px 32px rgba(44,62,80,0.10);
 }
 /* Remove sidebar spacing */
 section[data-testid="stSidebar"] {
     display: none !important;
 }
-/* Full width content with small padding */
+/* Full width content with large padding */
 .main {
-    padding: 20px !important;
+    padding: 40px !important;
     margin: 0 !important;
+    background: #f6f8fa;
 }
 span[data-baseweb="form-control-caption"] {
     display: none !important;
