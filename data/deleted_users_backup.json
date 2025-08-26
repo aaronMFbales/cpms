@@ -30,5 +30,21 @@
     "approved_by": "admin",
     "deleted_at": 1754828027.085899,
     "deleted_by": "admin"
+  },
+  "aaronbales": {
+    "password": "553dc213cfdc1938486166f5ef4dde666259c977be0b5aee0b667e70dfcd00f4",
+    "role": "encoder",
+    "approved": true,
+    "created_at": 1756173301.951229,
+    "first_name": "Aaron",
+    "last_name": "Bales",
+    "email": "aaronbales98@gmail.com",
+    "organization": "DTI-DCFO",
+    "position": "OJT",
+    "contact_number": "09917171660",
+    "approved_at": 1756173356.1292574,
+    "approved_by": "admin",
+    "deleted_at": 1756174167.5548463,
+    "deleted_by": "admin"
   }
 }

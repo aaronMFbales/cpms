@@ -56,23 +56,23 @@ def save_users(users):
 def send_registration_notification(user_data):
     """Send email notification to admin when a new user registers"""
     try:
-        # Email configuration - using Streamlit secrets
-        sender_email = st.secrets.get("email", {}).get("sender_email", "aaronmfbales@gmail.com")
-        sender_password = st.secrets.get("email", {}).get("sender_password", "")
-        receiver_email = st.secrets.get("email", {}).get("sender_email", "aaronmfbales@gmail.com")
-        
+        # Email configuration - using Streamlit secrets (match secrets.toml keys)
+        sender_email = st.secrets.get("email", {}).get("username", "aaronmfbales@gmail.com")
+        sender_password = st.secrets.get("email", {}).get("password", "")
+        receiver_email = st.secrets.get("email", {}).get("from", "aaronmfbales@gmail.com")
+
         # Create message
         msg = MIMEMultipart()
         msg['From'] = sender_email
         msg['To'] = receiver_email
         msg['Subject'] = "New User Registration - CPMS"
-        
+
         # Email body (removed location details)
         body = f"""
         New User Registration Notification
-        
+
         A new user has registered for the CPMS system.
-        
+
         User Details:
         - Name: {user_data.get('first_name', '')} {user_data.get('last_name', '')}
         - Username: {user_data.get('username', '')}
@@ -81,25 +81,25 @@ def send_registration_notification(user_data):
         - Position: {user_data.get('position', '')}
         - Contact Number: {user_data.get('contact_number', '')}
         - Registration Date: {datetime.fromtimestamp(user_data.get('created_at', time.time())).strftime('%Y-%m-%d %H:%M:%S')}
-        
+
         Please log in to the admin panel to approve or reject this user.
-        
+
         Best regards,
         CPMS System
         """
-        
+
         msg.attach(MIMEText(body, 'plain'))
-        
+
         # Create SMTP session
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.starttls()
         server.login(sender_email, sender_password)
-        
+
         # Send email
         text = msg.as_string()
         server.sendmail(sender_email, receiver_email, text)
         server.quit()
-        
+
         return True
     except Exception as e:
         st.error(f"Failed to send email notification: {str(e)}")

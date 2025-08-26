@@ -119,12 +119,12 @@ def show():
     with col2:
         # Center the logo
         logo_path = "assets/dtilogo.png"
-        st.image(logo_path, width=300)  
+        st.image(logo_path, width=400)  
 
         # Center the title with slight left adjustment
         st.markdown(
-            "<h4 style='text-align: center; color: #263d81; font-weight: bold; font-size: 30px; white-space: nowrap; margin-left: -240px;'>"
-            "DTI REGION XI - CLIENT PROFILE AND MONITORING SYSTEM"
+            "<h4 style='text-align: center; color: #263d81; font-weight: bold; font-size: 30px; white-space: nowrap; margin-left: -140px;'>"
+            "MSME CLIENT PROFILE AND MONITORING SYSTEM"
             "</h4>",
             unsafe_allow_html=True
         )

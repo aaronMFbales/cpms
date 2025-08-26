@@ -201,52 +201,52 @@ def format_time_ago(timestamp):
 def send_approval_notification(user_data):
     """Send email notification when user is approved"""
     try:
-        # Email configuration - using Streamlit secrets
-        sender_email = st.secrets.get("email", {}).get("sender_email", "aaronmfbales@gmail.com")
-        sender_password = st.secrets.get("email", {}).get("sender_password", "")
+        # Email configuration - using Streamlit secrets (match secrets.toml keys)
+        sender_email = st.secrets.get("email", {}).get("username", "aaronmfbales@gmail.com")
+        sender_password = st.secrets.get("email", {}).get("password", "")
         receiver_email = user_data.get('email', '')
-        
+
         if not receiver_email:
             return False
-        
+
         # Create message
         msg = MIMEMultipart()
         msg['From'] = sender_email
         msg['To'] = receiver_email
         msg['Subject'] = "Account Approved - CPMS"
-        
+
         # Email body
         body = f"""
         Dear {user_data.get('first_name', '')} {user_data.get('last_name', '')},
-        
+
         Your account has been approved by the administrator.
-        
+
         You can now log in to the CPMS system using your credentials.
-        
+
         Account Details:
         - Username: {user_data.get('username', '')}
         - Name: {user_data.get('first_name', '')} {user_data.get('last_name', '')}
         - Organization: {user_data.get('organization', '')}
         - Position: {user_data.get('position', '')}
-        
+
         Please visit the login page to access the system.
-        
+
         Best regards,
         CPMS Administration Team
         """
-        
+
         msg.attach(MIMEText(body, 'plain'))
-        
+
         # Create SMTP session
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.starttls()
         server.login(sender_email, sender_password)
-        
+
         # Send email
         text = msg.as_string()
         server.sendmail(sender_email, receiver_email, text)
         server.quit()
-        
+
         return True
     except Exception as e:
         st.error(f"Failed to send approval email: {str(e)}")
@@ -255,46 +255,46 @@ def send_approval_notification(user_data):
 def send_rejection_notification(user_data):
     """Send email notification when user is rejected"""
     try:
-        # Email configuration - using Streamlit secrets
-        sender_email = st.secrets.get("email", {}).get("sender_email", "aaronmfbales@gmail.com")
-        sender_password = st.secrets.get("email", {}).get("sender_password", "")
+        # Email configuration - using Streamlit secrets (match secrets.toml keys)
+        sender_email = st.secrets.get("email", {}).get("username", "aaronmfbales@gmail.com")
+        sender_password = st.secrets.get("email", {}).get("password", "")
         receiver_email = user_data.get('email', '')
-        
+
         if not receiver_email:
             return False
-        
+
         # Create message
         msg = MIMEMultipart()
         msg['From'] = sender_email
         msg['To'] = receiver_email
         msg['Subject'] = "Account Application Status - CPMS"
-        
+
         # Email body
         body = f"""
         Dear {user_data.get('first_name', '')} {user_data.get('last_name', '')},
-        
+
         Thank you for your interest in the CPMS system.
-        
+
         After careful review, we regret to inform you that your account application has not been approved at this time.
-        
+
         If you have any questions, please contact the system administrator.
-        
+
         Best regards,
         CPMS Administration Team
         """
-        
+
         msg.attach(MIMEText(body, 'plain'))
-        
+
         # Create SMTP session
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.starttls()
         server.login(sender_email, sender_password)
-        
+
         # Send email
         text = msg.as_string()
         server.sendmail(sender_email, receiver_email, text)
         server.quit()
-        
+
         return True
     except Exception as e:
         st.error(f"Failed to send rejection email: {str(e)}")
