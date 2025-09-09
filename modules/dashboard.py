@@ -1367,7 +1367,14 @@ def show():
             active_sheets_count = 0
         
         # Update the active sheets count in the sidebar via JavaScript
-        st.markdown(f"""
+        st.markdown("""
+            <style>
+            /* Date picker: only adjust height and vertical alignment, keep native style */
+            input[type="date"], .stDateInput input {
+                min-height: 40px !important;
+                vertical-align: middle !important;
+            }
+            </style>
             <script>
             updateActiveSheets({active_sheets_count});
             </script>
@@ -1727,6 +1734,7 @@ def show():
             
             # Target Setting Panel
             with st.expander("Set Department Targets", expanded=False):
+                st.markdown('<div style="padding-top:32px"></div>', unsafe_allow_html=True)
                 st.markdown("### Adjust Monthly Targets for Each Department")
                 st.markdown("*Set targets to track department performance and overall progress*")
                 
@@ -4845,7 +4853,7 @@ def show():
                 use_container_width=True,
                 column_config=column_config,
                 hide_index=True,
-                width=None,
+                width='stretch',
                 height=400
             )
             
