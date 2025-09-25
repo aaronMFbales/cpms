@@ -9,6 +9,24 @@ from utils.psic_handler import create_psic_widgets
 from utils.data_manager import data_manager
 from utils.secure_session import session_manager
 
+st.markdown("""
+<style>
+/* Standardize label and input styles for location fields */
+.location-label {
+    font-size: 16px !important;
+    font-weight: 500 !important;
+    color: #262730 !important;
+    margin-bottom: 4px !important;
+    display: block !important;
+}
+.location-input {
+    min-height: 48px !important;
+    font-size: 16px !important;
+    vertical-align: middle !important;
+    box-sizing: border-box !important;
+}
+</style>
+""", unsafe_allow_html=True)
 # Add JavaScript error handling for Render deployment issues
 if os.getenv('RENDER'):
     st.markdown("""
@@ -295,10 +313,23 @@ def create_user_excel_download():
             
             for sheet_name in sheet_names:
                 data, columns = data_manager.load_user_data(username, sheet_name)
-                
                 if data and columns:
                     df = pd.DataFrame(data, columns=columns)
+                    # Force 'Date Created' to be exported as text, not Excel date
+                    if 'Date Created' in df.columns:
+                        df['Date Created'] = df['Date Created'].astype(str)
                     df.to_excel(writer, sheet_name=sheet_name, index=False)
+                    worksheet = writer.sheets[sheet_name]
+                    if 'Date Created' in df.columns:
+                        col_idx = df.columns.get_loc('Date Created')
+                        # Set column width for both openpyxl and xlsxwriter
+                        try:
+                            worksheet.set_column(col_idx, col_idx, 24)
+                        except Exception:
+                            # openpyxl: set width by column letter
+                            from openpyxl.utils import get_column_letter
+                            col_letter = get_column_letter(col_idx + 1)
+                            worksheet.column_dimensions[col_letter].width = 24
                     has_data = True
             
             if not has_data:

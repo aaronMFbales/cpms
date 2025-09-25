@@ -22,19 +22,5 @@
     "first_name": "DTI",
     "last_name": "Administrator",
     "is_default_admin": true
-  },
-  "aaronbales": {
-    "password": "553dc213cfdc1938486166f5ef4dde666259c977be0b5aee0b667e70dfcd00f4",
-    "role": "encoder",
-    "approved": true,
-    "created_at": 1756174234.9711974,
-    "first_name": "Aaron",
-    "last_name": "Bales",
-    "email": "aaronbales98@gmail.com",
-    "organization": "DTI-DCFO",
-    "position": "OJT",
-    "contact_number": "09917171660",
-    "approved_at": 1756174291.752107,
-    "approved_by": "admin"
   }
 }
