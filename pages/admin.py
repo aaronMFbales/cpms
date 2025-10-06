@@ -502,7 +502,7 @@ def check_system_wide_duplicates():
         st.error(f"Error checking system-wide duplicates: {str(e)}")
         return {}
 
-st.set_page_config(page_title="CPMS Admin", page_icon="", layout="wide")
+st.set_page_config(page_title="MSME CPMS Admin Dashboard", page_icon="", layout="wide")
 
 # Admin page session restoration - make it completely self-sufficient
 print(f"Admin page load - auth_cookie in session_state: {'auth_cookie' in st.session_state}")
@@ -548,543 +548,1474 @@ if not auth_cookie or auth_cookie.get("role") != "admin":
 
 print("Admin access verified successfully")
 
-# Clean and minimal CSS - no interference with toggle button
+# Modern Professional Admin Dashboard CSS
 st.markdown("""
     <style>
-    /* Hide Streamlit's default page navigation */
-    [data-testid="stSidebarNav"] {
+    /* Global Styles */
+    .stApp {
+        background: #f8fafc;
+    }
+    
+    /* Hide Streamlit's default elements */
+    [data-testid="stSidebarNav"],
+    .stSidebar,
+    #MainMenu,
+    footer,
+    .stAppDeployButton,
+    div[data-testid="stAppDeployButton"],
+    header[data-testid="stHeader"] {
         display: none !important;
     }
     
-    /* Modern Sidebar Design */
-    .stSidebar {
-        background: linear-gradient(180deg, #1e3a8a 0%, #172087 100%) !important;
-    }
-    
-    /* Make all sidebar text white */
-    .stSidebar * {
-        color: white !important;
-    }
-    
-    /* Sidebar button styling with white outline */
-    .stSidebar button {
-        color: white !important;
-        background-color: rgba(255,255,255,0.1) !important;
-        border: 2px solid #fff !important;
-        border-radius: 8px !important;
-        box-shadow: 0 0 0 2px rgba(255,255,255,0.15) !important;
-        transition: border 0.2s, box-shadow 0.2s;
-    }
-    .stSidebar button:hover {
-        background-color: rgba(255,255,255,0.2) !important;
-        border: 2.5px solid #fff !important;
-        box-shadow: 0 0 0 3px rgba(255,255,255,0.25) !important;
-    }
-    
-    /* Active Users Status Cards */
-    .user-status-card {
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        padding: 16px;
-        margin: 8px 0;
-        transition: all 0.2s ease;
-    }
-    
-    .user-status-card:hover {
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        transform: translateY(-1px);
-    }
-    
-    .status-indicator {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        font-weight: 600;
-        font-size: 14px;
-    }
-    
-    .status-online {
-        color: #22c55e;
-    }
-    
-    .status-away {
-        color: #f59e0b;
-    }
-    
-    .status-idle {
-        color: #f97316;
-    }
-    
-    .user-info-grid {
-        display: grid;
-        grid-template-columns: 2fr 1fr 1fr 1fr;
-        gap: 16px;
-        align-items: center;
-        padding: 12px 0;
-    }
-    
-    .activity-metrics {
-        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-        border-radius: 12px;
-        padding: 20px;
-        margin: 16px 0;
-        border: 1px solid #bae6fd;
-    }
-    
-    /* Custom sidebar components */
-    .sidebar-header {
-        background: rgba(255,255,255,0.1);
-        border-radius: 12px;
-        padding: 24px 20px;
-        margin: 30px 10px 30px 10px;
-        text-align: center;
-        border: 1px solid rgba(255,255,255,0.2);
-    }
-    
-    .admin-logo {
-        width: 50px;
-        height: 50px;
-        background: #60a5fa;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 8px auto 15px;
+    /* Dashboard Header */
+    .admin-header {
+        background: linear-gradient(135deg, #1e3a8a 0%, #172087 50%, #1e40af 100%);
         color: white;
-        font-weight: bold;
-        font-size: 20px;
+        padding: 2rem 3rem;
+        margin: -1rem -1rem 2rem -1rem;
+        border-radius: 0 0 20px 20px;
+        box-shadow: 0 8px 32px rgba(23, 32, 135, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .admin-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+        opacity: 0.3;
+    }
+    
+    .admin-header-content {
+        position: relative;
+        z-index: 1;
     }
     
     .admin-title {
-        color: white;
-        font-size: 18px;
-        font-weight: 600;
-        margin-bottom: 5px;
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin: 0;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        letter-spacing: 1px;
     }
     
     .admin-subtitle {
-        color: rgba(255,255,255,0.7);
-        font-size: 12px;
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin-top: 0.5rem;
+        font-weight: 400;
+    }
+    
+    /* Navigation Menu */
+    .nav-container {
+        padding: 0.5rem 0;
+        margin-bottom: 1rem;
+    }
+    
+    .nav-menu {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .nav-item {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1rem 1.5rem;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        text-align: center;
+        min-width: 180px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .nav-item:hover {
+        background: linear-gradient(135deg, #172087 0%, #1e40af 100%);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(23, 32, 135, 0.25);
+        border-color: #172087;
+    }
+    
+    .nav-item.active {
+        background: linear-gradient(135deg, #172087 0%, #1e40af 100%);
+        color: white;
+        border-color: #172087;
+        box-shadow: 0 4px 15px rgba(23, 32, 135, 0.3);
+    }
+    
+    .nav-item-title {
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin: 0;
+    }
+    
+    .nav-item-desc {
+        font-size: 0.75rem;
+        opacity: 0.8;
+        margin-top: 0.25rem;
+    }
+    
+    /* Content Area */
+    .content-area {
+        padding: 0;
+        margin-top: 0;
+    }
+    
+    .content-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #f1f5f9;
+    }
+    
+    .content-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #172087;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .content-badge {
+        background: linear-gradient(135deg, #172087 0%, #1e40af 100%);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
     
-    .nav-divider {
-        height: 1px;
-        background: rgba(255,255,255,0.1);
-        margin: 15px 20px;
-    }
-    
-    .admin-stats {
-        background: rgba(255,255,255,0.05);
-        margin: 15px 10px;
+    /* Professional Tables */
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+        background: white;
         border-radius: 10px;
-        padding: 12px;
-        border: 1px solid rgba(255,255,255,0.1);
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     }
     
-    .admin-stats h4 {
+    .data-table th {
+        background: linear-gradient(135deg, #172087 0%, #1e40af 100%);
         color: white;
-        font-size: 13px;
+        padding: 1rem;
+        text-align: left;
         font-weight: 600;
-        margin: 0 0 8px 0;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
     
-    .stats-info {
-        color: rgba(255,255,255,0.85);
-        font-size: 11px;
-        margin-bottom: 6px;
+    .data-table td {
+        padding: 1rem;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: top;
     }
     
-    .user-info {
-        background: rgba(255,255,255,0.1);
+    .data-table tr:hover {
+        background: #f8fafc;
+    }
+    
+    .data-table tr:last-child td {
+        border-bottom: none;
+    }
+    
+    /* Status Indicators */
+    .status-online {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #059669;
+        font-weight: 600;
+    }
+    
+    .status-away {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #d97706;
+        font-weight: 600;
+    }
+    
+    .status-idle {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #dc2626;
+        font-weight: 600;
+    }
+    
+    .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .status-approved {
+        background: #d1fae5;
+        color: #065f46;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    /* Action Buttons */
+    .action-btn {
+        padding: 0.5rem 1rem;
         border-radius: 8px;
-        padding: 12px;
-        border: 1px solid rgba(255,255,255,0.2);
-        margin: 15px 10px;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.8rem;
+        transition: all 0.2s ease;
+        margin: 0.25rem;
     }
     
-    .user-avatar {
-        width: 35px;
-        height: 35px;
-        background: #60a5fa;
-        border-radius: 50%;
+    .btn-approve {
+        background: #059669;
+        color: white;
+    }
+    
+    .btn-approve:hover {
+        background: #047857;
+        transform: translateY(-1px);
+    }
+    
+    .btn-reject {
+        background: #dc2626;
+        color: white;
+    }
+    
+    .btn-reject:hover {
+        background: #b91c1c;
+        transform: translateY(-1px);
+    }
+    
+    .btn-secondary {
+        background: #6b7280;
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        background: #4b5563;
+        transform: translateY(-1px);
+    }
+    
+    /* Metrics Cards */
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .metric-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        border: 1px solid #e2e8f0;
+        text-align: center;
+        transition: transform 0.2s ease;
+    }
+    
+    .metric-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    }
+    
+    .metric-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #172087;
+        margin: 0;
+    }
+    
+    .metric-label {
+        font-size: 0.9rem;
+        color: #6b7280;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 0.5rem;
+    }
+    
+    /* Empty States */
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #6b7280;
+    }
+    
+    .empty-state-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+    
+    /* Admin Info Panel */
+    .admin-info-panel {
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        border: 1px solid #bae6fd;
+        border-radius: 12px;
+        padding: 1rem;
+        margin: 0.25rem 0 1rem 0;
+    }
+    
+    .admin-info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+    
+    .admin-info-item {
         display: flex;
         align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: bold;
-        margin-bottom: 8px;
+        gap: 0.75rem;
     }
     
-    .user-name {
+    .admin-info-label {
+        font-weight: 600;
+        color: #0c4a6e;
+        min-width: 80px;
+    }
+    
+    /* Data Tables */
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .data-table th {
+        background: linear-gradient(135deg, #172087 0%, #1e3a8a 100%);
         color: white;
+        padding: 15px 12px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 14px;
+        border: none;
+    }
+    
+    .data-table td {
+        padding: 12px;
+        border-bottom: 1px solid #e5e7eb;
+        vertical-align: top;
         font-size: 13px;
-        font-weight: 500;
+        line-height: 1.4;
     }
     
-    .user-role {
-        color: rgba(255,255,255,0.7);
+    .data-table tr:hover {
+        background-color: #f9fafb;
+    }
+    
+    .data-table tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .status-approved {
+        background: #dcfce7;
+        color: #166534;
+        padding: 4px 8px;
+        border-radius: 6px;
         font-size: 11px;
-        text-transform: capitalize;
+        font-weight: 600;
     }
     
-    /* Hide Streamlit's "Hosted with Streamlit" badge and promotional content */
-    .stAppDeployButton,
-    div[data-testid="stAppDeployButton"],
-    a[href*="streamlit.io"],
-    div:contains("Hosted with Streamlit"),
-    [data-testid="stBottom"],
-    .st-emotion-cache-h4xjwg,
-    div[class*="floating"],
-    div[class*="badge"],
-    .stAppViewBlockContainer > div:last-child:contains("Streamlit") {
-        display: none !important;
+    .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 600;
     }
     
-    /* Hide any footer elements */
-    footer, .stAppViewContainer footer {
-        display: none !important;
+    .status-online {
+        background: #dcfce7;
+        color: #166534;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 600;
     }
     
-    /* DTI Blue Button Styling */
-    .dti-blue-button {
-        background-color: #172087 !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 8px !important;
-        padding: 12px 24px !important;
-        font-weight: 600 !important;
-        font-size: 16px !important;
-        transition: all 0.3s ease !important;
-        box-shadow: 0 2px 4px rgba(23, 32, 135, 0.2) !important;
+    .status-offline {
+        background: #f3f4f6;
+        color: #374151;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 600;
     }
     
-    .dti-blue-button:hover {
-        background-color: #1e3a8a !important;
-        box-shadow: 0 4px 8px rgba(23, 32, 135, 0.3) !important;
-        transform: translateY(-1px) !important;
+    .admin-info-value {
+        color: #0369a1;
+        font-family: 'Courier New', monospace;
+        background: rgba(255,255,255,0.7);
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
     }
     
-    .dti-blue-button:active {
-        background-color: #1d4ed8 !important;
-        transform: translateY(0) !important;
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .nav-menu {
+            flex-direction: column;
+        }
+        
+        .nav-item {
+            min-width: 100%;
+        }
+        
+        .content-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+        
+        .metrics-grid {
+            grid-template-columns: 1fr;
+        }
     }
     
-    /* Target specific button by its content */
-    button[kind="primary"]:has-text("Scan All User Data for Duplicates"),
-    button:contains("Scan All User Data for Duplicates") {
-        background-color: #172087 !important;
-        border-color: #172087 !important;
-        color: white !important;
+    /* Hide Streamlit default styling */
+    .stButton > button {
+        display: none;
     }
     
-    button[kind="primary"]:has-text("Scan All User Data for Duplicates"):hover,
-    button:contains("Scan All User Data for Duplicates"):hover {
-        background-color: #1e3a8a !important;
-        border-color: #1e3a8a !important;
-        box-shadow: 0 4px 8px rgba(23, 32, 135, 0.3) !important;
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: #f1f5f9;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: #172087;
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: #1e40af;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# Initialize admin navigation state - restore from session only on first load
+# Initialize admin navigation state
 if "admin_selected_tab" not in st.session_state:
-    # First load - try to restore from session
-    if auth_cookie and 'current_admin_tab' in auth_cookie:
-        st.session_state["admin_selected_tab"] = auth_cookie['current_admin_tab']
-    else:
-        st.session_state["admin_selected_tab"] = "Pending Approvals"
+    st.session_state["admin_selected_tab"] = "Dashboard Overview"
 
-selected_tab = st.session_state.get("admin_selected_tab", "Pending Approvals")
+# Available admin sections
+admin_sections = [
+    {
+        "id": "dashboard_overview",
+        "title": "Dashboard Overview",
+        "description": "System metrics & analytics",
+        "icon": ""
+    },
+    {
+        "id": "pending_approvals", 
+        "title": "Pending Approvals",
+        "description": "Review user registrations",
+        "icon": ""
+    },
+    {
+        "id": "active_users",
+        "title": "Active Users", 
+        "description": "Monitor online activity",
+        "icon": ""
+    },
+    {
+        "id": "all_users",
+        "title": "All Users",
+        "description": "Manage user accounts",
+        "icon": ""
+    },
+    {
+        "id": "user_data_management",
+        "title": "User Data Management",
+        "description": "Data analysis & reports",
+        "icon": ""
+    },
+    {
+        "id": "system_data_analysis",
+        "title": "System Data Analysis",
+        "description": "System-wide insights",
+        "icon": ""
+    },
+    {
+        "id": "system_settings",
+        "title": "System Settings",
+        "description": "Configuration & settings",
+        "icon": ""
+    },
+    {
+        "id": "deleted_users",
+        "title": "Deleted Users",
+        "description": "Restore deleted accounts",
+        "icon": ""
+    }
+]
 
-# Update admin session activity and preserve current tab
+# Update admin session activity
 try:
-    current_tab = st.session_state.get("admin_selected_tab", "Pending Approvals") 
+    current_tab = st.session_state.get("admin_selected_tab", "Dashboard Overview")
     auth_cookie['current_admin_tab'] = current_tab
     session_manager.save_session(auth_cookie)
 except Exception as e:
     print(f"Admin session update error: {e}")
 
-# Header with selected tab name
-st.markdown(f"<h1 style='color: #172087;'>Admin Dashboard - {selected_tab}</h1>", unsafe_allow_html=True)
+# Clean integrated header with dropdown menu
+st.markdown("""
+<div style="position: fixed; top: 0; left: 0; right: 0; height: 50px; background: linear-gradient(90deg, #172087 0%, #1e3a8a 50%, #172087 100%); z-index: 1001; display: flex; align-items: center; justify-content: space-between; padding: 0 2rem;">
+    <div style="color: white; font-size: 18px; font-weight: 800; text-shadow: 1px 1px 0px rgba(0,0,0,0.6), 2px 2px 0px rgba(0,0,0,0.4), 3px 3px 0px rgba(0,0,0,0.2), 4px 4px 10px rgba(0,0,0,0.2); transform: perspective(500px) rotateX(15deg); filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.3));">
+        MSME CPMS ADMIN DASHBOARD
+    </div>
+    <div style="position: relative;">
+        <div id="dropdown-trigger" style="background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px; color: white; font-size: 14px; font-weight: 500;" title="User Menu">
+            Admin
+            <svg id="dropdown-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" style="transition: transform 0.3s ease;">
+                <path d="M7 10L12 15L17 10" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+        <div id="dropdown-menu" style="position: absolute; top: 45px; right: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(15px); border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); box-shadow: 0 8px 32px rgba(0,0,0,0.3); min-width: 150px; opacity: 0; visibility: hidden; transform: translateY(-10px); transition: all 0.3s ease; z-index: 1002;">
+            <div id="user-profile-item" style="padding: 12px 16px; cursor: pointer; transition: background 0.2s ease; border-bottom: 1px solid rgba(0,0,0,0.1); color: #172087; font-weight: 500; display: flex; align-items: center; gap: 8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="#172087" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="12" cy="7" r="4" stroke="#172087" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                User Profile
+            </div>
+            <div id="logout-item" style="padding: 12px 16px; cursor: pointer; transition: background 0.2s ease; color: #dc2626; font-weight: 500; display: flex; align-items: center; gap: 8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <polyline points="16,17 21,12 16,7" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <line x1="21" y1="12" x2="9" y2="12" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Logout
+            </div>
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+# JavaScript for dropdown functionality
+st.components.v1.html("""
+<script>
+let dropdownOpen = false;
+
+function toggleDropdown() {
+    const menu = parent.document.getElementById('dropdown-menu');
+    const arrow = parent.document.getElementById('dropdown-arrow');
+    const trigger = parent.document.getElementById('dropdown-trigger');
+    
+    if (!menu || !arrow || !trigger) return;
+    
+    dropdownOpen = !dropdownOpen;
+    
+    if (dropdownOpen) {
+        menu.style.opacity = '1';
+        menu.style.visibility = 'visible';
+        menu.style.transform = 'translateY(0)';
+        arrow.style.transform = 'rotate(180deg)';
+        trigger.style.background = 'rgba(255,255,255,0.25)';
+    } else {
+        menu.style.opacity = '0';
+        menu.style.visibility = 'hidden';
+        menu.style.transform = 'translateY(-10px)';
+        arrow.style.transform = 'rotate(0deg)';
+        trigger.style.background = 'rgba(255,255,255,0.15)';
+    }
+}
+
+function closeDropdown() {
+    const menu = parent.document.getElementById('dropdown-menu');
+    const arrow = parent.document.getElementById('dropdown-arrow');
+    const trigger = parent.document.getElementById('dropdown-trigger');
+    
+    if (!menu || !arrow || !trigger) return;
+    
+    dropdownOpen = false;
+    menu.style.opacity = '0';
+    menu.style.visibility = 'hidden';
+    menu.style.transform = 'translateY(-10px)';
+    arrow.style.transform = 'rotate(0deg)';
+    trigger.style.background = 'rgba(255,255,255,0.15)';
+}
+
+function triggerLogout() {
+    // Direct logout action using Streamlit's page navigation
+    if (parent.window.location) {
+        parent.window.location.href = '/';
+    }
+    // Alternative: trigger a page reload to login
+    parent.window.location.reload();
+}
+
+function triggerProfile() {
+    // Show profile info or navigate to profile page
+    alert('User Profile functionality - This can be customized to show profile details or navigate to a profile page.');
+}
+
+// Setup dropdown functionality
+function setupDropdown() {
+    const trigger = parent.document.getElementById('dropdown-trigger');
+    const logoutItem = parent.document.getElementById('logout-item');
+    const profileItem = parent.document.getElementById('user-profile-item');
+    
+    if (trigger && !trigger.hasAttribute('data-initialized')) {
+        trigger.setAttribute('data-initialized', 'true');
+        trigger.onclick = function(e) {
+            e.stopPropagation();
+            toggleDropdown();
+        };
+    }
+    
+    if (logoutItem && !logoutItem.hasAttribute('data-initialized')) {
+        logoutItem.setAttribute('data-initialized', 'true');
+        logoutItem.onclick = function() {
+            closeDropdown();
+            triggerLogout();
+        };
+        
+        logoutItem.onmouseenter = function() {
+            this.style.background = 'rgba(220, 38, 38, 0.1)';
+        };
+        
+        logoutItem.onmouseleave = function() {
+            this.style.background = 'transparent';
+        };
+    }
+    
+    if (profileItem && !profileItem.hasAttribute('data-initialized')) {
+        profileItem.setAttribute('data-initialized', 'true');
+        profileItem.onclick = function() {
+            closeDropdown();
+            triggerProfile();
+        };
+        
+        profileItem.onmouseenter = function() {
+            this.style.background = 'rgba(23, 32, 135, 0.1)';
+        };
+        
+        profileItem.onmouseleave = function() {
+            this.style.background = 'transparent';
+        };
+    }
+    
+    // Close dropdown when clicking outside
+    parent.document.onclick = function(e) {
+        const dropdown = parent.document.getElementById('dropdown-menu');
+        const trigger = parent.document.getElementById('dropdown-trigger');
+        
+        if (dropdown && trigger && 
+            !dropdown.contains(e.target) && 
+            !trigger.contains(e.target)) {
+            closeDropdown();
+        }
+    };
+}
+
+// Initialize with retries
+setTimeout(setupDropdown, 100);
+setTimeout(setupDropdown, 500);
+setTimeout(setupDropdown, 1000);
+</script>
+""", height=0)
+
+# Move ALL content directly under header - Aggressive spacing reduction
+st.markdown("""
+<style>
+/* Aggressive spacing reduction - content starts immediately after header */
+.main .block-container {
+    padding-top: 55px !important;
+    padding-bottom: 1rem !important;
+    margin-top: 0 !important;
+}
+.stApp > div:first-child {
+    padding-top: 0px !important;
+    margin-top: 0 !important;
+}
+/* Remove ALL default Streamlit spacing */
+div[data-testid="stVerticalBlock"] {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+div[data-testid="stVerticalBlock"] > div:first-child {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+/* Force admin info panel to start immediately with no gaps */
+.admin-info-panel {
+    margin-top: 0 !important;
+    margin-bottom: 1rem !important;
+    padding-top: 0 !important;
+}
+/* Reduce navigation spacing dramatically */
+.navigation-container {
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+}
+/* Move navigation buttons up aggressively */
+div[data-testid="stHorizontalBlock"]:first-of-type {
+    margin-top: 0rem !important;
+    margin-bottom: 1rem !important;
+}
+div[data-testid="stHorizontalBlock"]:nth-of-type(2) {
+    margin-top: 0.5rem !important;
+    margin-bottom: 1rem !important;
+}
+/* Reduce content section spacing */
+.content-section {
+    margin-top: 0.5rem !important;
+    padding-top: 0 !important;
+}
+/* Reduce content header spacing */
+.content-header {
+    margin-bottom: 1rem !important;
+    padding-bottom: 0.5rem !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# Admin Info Panel (moved up, no white space)
+admin_info = get_admin_credentials_display()
+auth_cookie = st.session_state["auth_cookie"]
+current_time = datetime.now().strftime("%B %d, %Y at %I:%M %p")
+
+st.markdown(f"""
+    <div class="admin-info-panel">
+        <div class="admin-info-grid">
+            <div class="admin-info-item">
+                <span class="admin-info-label">Admin:</span>
+                <span class="admin-info-value">{auth_cookie.get('first_name', 'DTI')} {auth_cookie.get('last_name', 'Administrator')}</span>
+            </div>
+            <div class="admin-info-item">
+                <span class="admin-info-label">Session:</span>
+                <span class="admin-info-value">{session_manager.get_browser_id()[:12]}...</span>
+            </div>
+            <div class="admin-info-item">
+                <span class="admin-info-label">Last Access:</span>
+                <span class="admin-info-value">{current_time}</span>
+            </div>
+            <div class="admin-info-item">
+                <span class="admin-info-label">Username:</span>
+                <span class="admin-info-value">{admin_info['username']}</span>
+            </div>
+        </div>
+    </div>
+""", unsafe_allow_html=True)
+
+# Navigation Menu - Table Format
+st.markdown("""
+<style>
+.nav-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.nav-table td {
+    padding: 15px 20px;
+    text-align: center;
+    border: 1px solid #e0e0e0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    position: relative;
+}
+
+.nav-table td:hover {
+    background: linear-gradient(135deg, #172087 0%, #1e3a8a 100%);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(23, 32, 135, 0.3);
+}
+
+.nav-table td.active {
+    background: linear-gradient(135deg, #172087 0%, #1e3a8a 100%);
+    color: white;
+    font-weight: bold;
+}
+
+.nav-title {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 2px;
+    display: block;
+}
+
+.nav-desc {
+    font-size: 11px;
+    opacity: 0.8;
+    display: block;
+}
+
+.nav-table td.active .nav-desc {
+    opacity: 0.9;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# Create navigation table
+selected_tab = st.session_state.get("admin_selected_tab", "Dashboard Overview")
+
+# Zero-spacing override CSS
+st.markdown("""
+<style>
+/* Ultra-compact layout overrides */
+.main .block-container {
+    padding-top: 51px !important;
+    padding-bottom: 0 !important;
+    margin: 0 auto !important;
+}
+
+/* Zero spacing for all elements */
+.stApp > div:first-child,
+div[data-testid="stVerticalBlock"],
+div[data-testid="stHorizontalBlock"],
+.element-container,
+.stMarkdown,
+.row-widget,
+div[class*="css-"] {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Minimal admin panel spacing */
+.admin-info-panel {
+    margin: 0 0 0.5rem 0 !important;
+    padding: 0.75rem !important;
+}
+
+/* Compressed navigation spacing */
+.navigation-section {
+    margin: 0 0 0.5rem 0 !important;
+}
+
+/* Tight button spacing */
+div[data-testid="stHorizontalBlock"]:first-of-type {
+    margin: 0 0 0.25rem 0 !important;
+}
+
+/* Second row of navigation buttons with proper gap */
+div[data-testid="stHorizontalBlock"]:nth-of-type(2) {
+    margin-top: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+/* Button styling consistency */
+.stButton > button {
+    width: 100%;
+    height: 3rem;
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+/* ===== CONTENT AREA SPACING ===== */
+/* Proper content spacing after navigation */
+.content-section {
+    margin-top: 2rem;
+    padding-top: 1rem;
+}
+
+/* Content header spacing */
+.content-header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e5e7eb;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# Display table navigation using columns for better Streamlit integration
+col1, col2, col3, col4 = st.columns(4)
+
+# First row navigation
+with col1:
+    section = admin_sections[0]
+    is_active = selected_tab == section["title"]
+    button_type = "primary" if is_active else "secondary"
+    if st.button(f"{section['title']}", key=f"nav_btn_{section['id']}", 
+                type=button_type, use_container_width=True, 
+                help=section['description']):
+        st.session_state["admin_selected_tab"] = section["title"]
+        st.rerun()
+
+with col2:
+    section = admin_sections[1]
+    is_active = selected_tab == section["title"]
+    button_type = "primary" if is_active else "secondary"
+    if st.button(f"{section['title']}", key=f"nav_btn_{section['id']}", 
+                type=button_type, use_container_width=True, 
+                help=section['description']):
+        st.session_state["admin_selected_tab"] = section["title"]
+        st.rerun()
+
+with col3:
+    section = admin_sections[2]
+    is_active = selected_tab == section["title"]
+    button_type = "primary" if is_active else "secondary"
+    if st.button(f"{section['title']}", key=f"nav_btn_{section['id']}", 
+                type=button_type, use_container_width=True, 
+                help=section['description']):
+        st.session_state["admin_selected_tab"] = section["title"]
+        st.rerun()
+
+with col4:
+    section = admin_sections[3]
+    is_active = selected_tab == section["title"]
+    button_type = "primary" if is_active else "secondary"
+    if st.button(f"{section['title']}", key=f"nav_btn_{section['id']}", 
+                type=button_type, use_container_width=True, 
+                help=section['description']):
+        st.session_state["admin_selected_tab"] = section["title"]
+        st.rerun()
+
+# Second row navigation
+col1, col2, col3, col4 = st.columns(4)
+
+with col1:
+    section = admin_sections[4]
+    is_active = selected_tab == section["title"]
+    button_type = "primary" if is_active else "secondary"
+    if st.button(f"{section['title']}", key=f"nav_btn_{section['id']}", 
+                type=button_type, use_container_width=True, 
+                help=section['description']):
+        st.session_state["admin_selected_tab"] = section["title"]
+        st.rerun()
+
+with col2:
+    section = admin_sections[5]
+    is_active = selected_tab == section["title"]
+    button_type = "primary" if is_active else "secondary"
+    if st.button(f"{section['title']}", key=f"nav_btn_{section['id']}", 
+                type=button_type, use_container_width=True, 
+                help=section['description']):
+        st.session_state["admin_selected_tab"] = section["title"]
+        st.rerun()
+
+with col3:
+    section = admin_sections[6]
+    is_active = selected_tab == section["title"]
+    button_type = "primary" if is_active else "secondary"
+    if st.button(f"{section['title']}", key=f"nav_btn_{section['id']}", 
+                type=button_type, use_container_width=True, 
+                help=section['description']):
+        st.session_state["admin_selected_tab"] = section["title"]
+        st.rerun()
+
+with col4:
+    section = admin_sections[7]
+    is_active = selected_tab == section["title"]
+    button_type = "primary" if is_active else "secondary"
+    if st.button(f"{section['title']}", key=f"nav_btn_{section['id']}", 
+                type=button_type, use_container_width=True, 
+                help=section['description']):
+        st.session_state["admin_selected_tab"] = section["title"]
+        st.rerun()
+
+# Get current selected tab
+selected_tab = st.session_state.get("admin_selected_tab", "Dashboard Overview")
+
+# Content Area with proper spacing
+st.markdown('<div class="content-section">', unsafe_allow_html=True)
+
+# Content Header with active indicator
+current_section = next((s for s in admin_sections if s["title"] == selected_tab), admin_sections[0])
+st.markdown(f"""
+    <div class="content-header">
+        <h2 class="content-title">{selected_tab}</h2>
+        <span class="content-badge">Active Page</span>
+    </div>
+""", unsafe_allow_html=True)
 
 # Display content based on selected tab
-if selected_tab == "Pending Approvals":
-    st.markdown("<h2>Pending User Approvals</h2>", unsafe_allow_html=True)
+if selected_tab == "Dashboard Overview":
+    # System Metrics
+    users = load_users()
+    active_users = get_active_users()
+    total_users = len(users)
+    approved_users = len([u for u in users.values() if u.get("approved")])
+    pending_users = total_users - approved_users
+    online_count = len([u for u in active_users if u['status'] == 'online'])
+    away_count = len([u for u in active_users if u['status'] == 'away'])
+    idle_count = len([u for u in active_users if u['status'] == 'idle'])
     
+    # Metrics Grid
+    st.markdown("""
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-value">""" + str(total_users) + """</div>
+                <div class="metric-label">Total Users</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">""" + str(approved_users) + """</div>
+                <div class="metric-label">Approved Users</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">""" + str(pending_users) + """</div>
+                <div class="metric-label">Pending Approvals</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">""" + str(online_count) + """</div>
+                <div class="metric-label">Users Online</div>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    # Recent Activity Table
+    st.markdown("### Recent User Activity")
+    
+    if active_users:
+        # Create activity data for display
+        activity_data = []
+        for user in active_users[:10]:  # Show last 10 active users
+            activity_data.append({
+                "User": f"{user['full_name']} (@{user['username']})",
+                "Status": user['status_text'],
+                "Last Activity": format_time_ago(user['last_activity']),
+                "Session Start": user.get('session_start', 'Unknown'),
+                "Role": user['role'].title()
+            })
+        
+        # Display as Streamlit dataframe with custom styling
+        import pandas as pd
+        df = pd.DataFrame(activity_data)
+        
+        st.dataframe(
+            df,
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "User": st.column_config.TextColumn("User", width="large"),
+                "Status": st.column_config.TextColumn("Status", width="small"),
+                "Last Activity": st.column_config.TextColumn("Last Activity", width="medium"),
+                "Session Start": st.column_config.TextColumn("Session Start", width="medium"),
+                "Role": st.column_config.TextColumn("Role", width="small")
+            }
+        )
+    else:
+        st.markdown("""
+            <div class="empty-state">
+                <div class="empty-state-icon"></div>
+                <h3>No Active Users</h3>
+                <p>No users are currently active in the system.</p>
+            </div>
+        """, unsafe_allow_html=True)
+
+elif selected_tab == "Pending Approvals":
     users = load_users()
     pending_users = {username: user_data for username, user_data in users.items() 
                     if user_data.get("role") == "encoder" and not user_data.get("approved")}
     
     if not pending_users:
-        st.info("No pending approvals at this time.")
+        st.markdown("""
+            <div class="empty-state">
+                <div class="empty-state-icon"></div>
+                <h3>No Pending Approvals</h3>
+                <p>All user registrations have been processed.</p>
+            </div>
+        """, unsafe_allow_html=True)
     else:
+        st.markdown(f"### {len(pending_users)} Pending User Registrations")
+        
+        # Create table with clickable headers
+        table_html = """
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>👤 User Details</th>
+                    <th>📧 Contact Information</th>
+                    <th>🏢 Organization</th>
+                    <th>📅 Registration</th>
+                    <th>⚡ Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+        """
+        
         for username, user_data in pending_users.items():
-            with st.expander(f"{user_data.get('first_name', '')} {user_data.get('last_name', '')} ({username})"):
-                col1, col2 = st.columns([2, 1])
+            table_html += f"""
+                <tr>
+                    <td>
+                        <strong>{user_data.get('first_name', '')} {user_data.get('last_name', '')}</strong><br>
+                        <small>@{username}</small>
+                    </td>
+                    <td>
+                        📧 {user_data.get('email', 'N/A')}<br>
+                        📞 {user_data.get('contact_number', 'N/A')}
+                    </td>
+                    <td>
+                        <strong>{user_data.get('organization', 'N/A')}</strong><br>
+                        <small>{user_data.get('position', 'N/A')}</small>
+                    </td>
+                    <td>
+                        {format_timestamp(user_data.get('created_at', 0))}<br>
+                        <small>Status: Pending</small>
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 0.5rem; flex-direction: column;">
+                            See actions below table
+                        </div>
+                    </td>
+                </tr>
+            """
+        
+        table_html += "</tbody></table>"
+        st.markdown(table_html, unsafe_allow_html=True)
+        
+        # Action buttons below table
+        st.markdown("#### Quick Actions")
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            selected_user = st.selectbox("Select user to approve:", list(pending_users.keys()))
+            if st.button("✓ Approve Selected User", type="primary", use_container_width=True):
+                users[selected_user]["approved"] = True
+                users[selected_user]["approved_at"] = time.time()
+                users[selected_user]["approved_by"] = auth_cookie.get("username", "admin")
+                save_users(users)
                 
-                with col1:
-                    st.write(f"**Name:** {user_data.get('first_name', '')} {user_data.get('last_name', '')}")
-                    st.write(f"**Email:** {user_data.get('email', '')}")
-                    st.write(f"**Organization:** {user_data.get('organization', '')}")
-                    st.write(f"**Position:** {user_data.get('position', '')}")
-                    st.write(f"**Contact:** {user_data.get('contact_number', '')}")
-                    st.write(f"**Registration Date:** {format_timestamp(user_data.get('created_at', 0))}")
+                email_sent = send_approval_notification(pending_users[selected_user])
+                st.success(f"User {selected_user} approved successfully!")
+                if email_sent:
+                    st.success("Approval email sent to user.")
+                else:
+                    st.warning("User approved, but email notification failed.")
+                st.rerun()
+        
+        with col2:
+            selected_reject_user = st.selectbox("Select user to reject:", list(pending_users.keys()), key="reject_select")
+            if st.button("✗ Reject Selected User", type="secondary", use_container_width=True):
+                email_sent = send_rejection_notification(pending_users[selected_reject_user])
+                del users[selected_reject_user]
+                save_users(users)
                 
-                with col2:
-                    col_approve, col_reject = st.columns(2)
-                    with col_approve:
-                        if st.button("Approve", key=f"approve_{username}"):
-                            users[username]["approved"] = True
-                            users[username]["approved_at"] = time.time()
-                            users[username]["approved_by"] = auth_cookie.get("username", "admin")
-                            save_users(users)
-                            
-                            # Send approval email notification
-                            email_sent = send_approval_notification(user_data)
-                            
-                            st.success(f"User {username} approved successfully!")
-                            if email_sent:
-                                st.success("Approval email sent to user.")
-                            else:
-                                st.warning("User approved, but email notification failed.")
-                            st.rerun()
-                    
-                    with col_reject:
-                        if st.button("Reject", key=f"reject_{username}"):
-                            # Send rejection email notification before deleting
-                            email_sent = send_rejection_notification(user_data)
-                            
-                            # Remove user from users dict
-                            del users[username]
-                            save_users(users)
-                            
-                            st.success(f"User {username} rejected and removed.")
-                            if email_sent:
-                                st.success("Rejection email sent to user.")
-                            else:
-                                st.warning("User rejected, but email notification failed.")
-                            st.rerun()
+                st.success(f"User {selected_reject_user} rejected and removed.")
+                if email_sent:
+                    st.success("Rejection email sent to user.")
+                else:
+                    st.warning("User rejected, but email notification failed.")
+                st.rerun()
 
 elif selected_tab == "Active Users":
-    st.markdown("<h2>Active Users Online</h2>", unsafe_allow_html=True)
-    
-    # Get active users data
     active_users = get_active_users()
     
-    # Auto-refresh functionality
+    # Auto-refresh controls
     col1, col2, col3 = st.columns([2, 1, 1])
     with col1:
-        st.markdown(f"**Total Active Users:** {len(active_users)}")
+        st.markdown(f"### {len(active_users)} Currently Active Users")
     with col2:
         auto_refresh = st.checkbox("Auto-refresh (30s)", value=False, key="auto_refresh_users")
     with col3:
-        if st.button("⟳ Refresh Now", key="manual_refresh_users"):
+        if st.button("Refresh Now", key="manual_refresh_users"):
             st.rerun()
     
-    # Auto-refresh timer
     if auto_refresh:
         time.sleep(30)
         st.rerun()
     
     if not active_users:
-        st.info("No users are currently active.")
-        st.markdown("---")
-        st.markdown("**Status Definitions:**")
+        st.markdown("""
+            <div class="empty-state">
+                <div class="empty-state-icon"></div>
+                <h3>No Active Users</h3>
+                <p>No users are currently active in the system.</p>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("#### Status Definitions:")
         st.markdown("- **Online:** Active within last 5 minutes")
         st.markdown("- **Away:** Active within last 15 minutes") 
         st.markdown("- **Idle:** Active within last 30 minutes")
-        
     else:
-        # Professional status cards layout
-        st.markdown("### Current Active Sessions")
-        
-        # Group users by status for better organization
+        # Group users by status
         online_users = [u for u in active_users if u['status'] == 'online']
         away_users = [u for u in active_users if u['status'] == 'away']
         idle_users = [u for u in active_users if u['status'] == 'idle']
         
-        # Status summary tabs
+        # Status tabs
         tab1, tab2, tab3 = st.tabs([
-            f"● Online ({len(online_users)})",
-            f"● Away ({len(away_users)})", 
-            f"● Idle ({len(idle_users)})"
+            f"Online ({len(online_users)})",
+            f"Away ({len(away_users)})", 
+            f"Idle ({len(idle_users)})"
         ])
         
+        def create_users_display(users_list, status_type):
+            if not users_list:
+                st.markdown(f"""
+                    <div class="empty-state">
+                        <div class="empty-state-icon"></div>
+                        <h4>No {status_type} Users</h4>
+                        <p>No users are currently {status_type.lower()}.</p>
+                    </div>
+                """, unsafe_allow_html=True)
+                return
+            
+            # Create data for Streamlit display
+            user_data = []
+            for user in users_list:
+                session_start = user.get('session_start', 'unknown')
+                if session_start != 'unknown':
+                    try:
+                        start_time = datetime.fromisoformat(session_start)
+                        session_display = start_time.strftime('%H:%M')
+                    except:
+                        session_display = "Unknown"
+                else:
+                    session_display = "Unknown"
+                
+                user_data.append({
+                    "User": f"{user['full_name']} (@{user['username']})",
+                    "Status": f"● {user['status_text']}",
+                    "Last Activity": format_time_ago(user['last_activity']),
+                    "Session Started": session_display,
+                    "Role": user['role'].title()
+                })
+            
+            # Display as Streamlit dataframe
+            import pandas as pd
+            df = pd.DataFrame(user_data)
+            
+            st.dataframe(
+                df,
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    "User": st.column_config.TextColumn("User", width="large"),
+                    "Status": st.column_config.TextColumn("Status", width="small"),
+                    "Last Activity": st.column_config.TextColumn("Last Activity", width="medium"),
+                    "Session Started": st.column_config.TextColumn("Session Started", width="medium"),
+                    "Role": st.column_config.TextColumn("Role", width="small")
+                }
+            )
+        
         with tab1:
-            if online_users:
-                for user in online_users:
-                    with st.container():
-                        col1, col2, col3, col4 = st.columns([3, 2, 2, 2])
-                        
-                        with col1:
-                            st.markdown(f"**{user['full_name']}** (`{user['username']}`)")
-                            st.caption(f"Role: {user['role'].title()}")
-                        
-                        with col2:
-                            st.markdown('<span style="color: #22c55e;">● **Online**</span>', unsafe_allow_html=True)
-                            st.caption("Active now")
-                        
-                        with col3:
-                            st.markdown(f"**Last Activity:**")
-                            st.caption(format_time_ago(user['last_activity']))
-                        
-                        with col4:
-                            st.markdown(f"**Session Started:**")
-                            session_start = user.get('session_start', 'unknown')
-                            if session_start != 'unknown':
-                                try:
-                                    start_time = datetime.fromisoformat(session_start)
-                                    st.caption(start_time.strftime('%H:%M'))
-                                except:
-                                    st.caption("Unknown")
-                            else:
-                                st.caption("Unknown")
-                        
-                        st.markdown("---")
-            else:
-                st.info("No users currently online.")
+            create_users_display(online_users, "Online")
         
         with tab2:
-            if away_users:
-                for user in away_users:
-                    with st.container():
-                        col1, col2, col3, col4 = st.columns([3, 2, 2, 2])
-                        
-                        with col1:
-                            st.markdown(f"**{user['full_name']}** (`{user['username']}`)")
-                            st.caption(f"Role: {user['role'].title()}")
-                        
-                        with col2:
-                            st.markdown('<span style="color: #f59e0b;">● **Away**</span>', unsafe_allow_html=True)
-                            st.caption("Recently active")
-                        
-                        with col3:
-                            st.markdown(f"**Last Activity:**")
-                            st.caption(format_time_ago(user['last_activity']))
-                        
-                        with col4:
-                            st.markdown(f"**Session Started:**")
-                            session_start = user.get('session_start', 'unknown')
-                            if session_start != 'unknown':
-                                try:
-                                    start_time = datetime.fromisoformat(session_start)
-                                    st.caption(start_time.strftime('%H:%M'))
-                                except:
-                                    st.caption("Unknown")
-                            else:
-                                st.caption("Unknown")
-                        
-                        st.markdown("---")
-            else:
-                st.info("No users currently away.")
+            create_users_display(away_users, "Away")
         
         with tab3:
-            if idle_users:
-                for user in idle_users:
-                    with st.container():
-                        col1, col2, col3, col4 = st.columns([3, 2, 2, 2])
-                        
-                        with col1:
-                            st.markdown(f"**{user['full_name']}** (`{user['username']}`)")
-                            st.caption(f"Role: {user['role'].title()}")
-                        
-                        with col2:
-                            st.markdown('<span style="color: #f97316;">● **Idle**</span>', unsafe_allow_html=True)
-                            st.caption("Inactive")
-                        
-                        with col3:
-                            st.markdown(f"**Last Activity:**")
-                            st.caption(format_time_ago(user['last_activity']))
-                        
-                        with col4:
-                            st.markdown(f"**Session Started:**")
-                            session_start = user.get('session_start', 'unknown')
-                            if session_start != 'unknown':
-                                try:
-                                    start_time = datetime.fromisoformat(session_start)
-                                    st.caption(start_time.strftime('%H:%M'))
-                                except:
-                                    st.caption("Unknown")
-                            else:
-                                st.caption("Unknown")
-                        
-                        st.markdown("---")
-            else:
-                st.info("No users currently idle.")
-        
-        # Activity metrics
-        st.markdown("---")
-        st.markdown("### Activity Metrics")
-        
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.metric("Total Active", len(active_users))
-        with col2:
-            st.metric("Online Now", len(online_users), delta=f"{len(online_users)}")
-        with col3:
-            st.metric("Away", len(away_users), delta=f"{len(away_users)}")
-        with col4:
-            st.metric("Idle", len(idle_users), delta=f"{len(idle_users)}")
+            create_users_display(idle_users, "Idle")
 
 elif selected_tab == "All Users":
-    st.markdown("<h2>All Users</h2>", unsafe_allow_html=True)
-    
     users = load_users()
     
-    # Create a DataFrame-like display
-    st.markdown("### User List")
+    st.markdown(f"### {len(users)} Registered Users")
     
-    for username, user_data in users.items():
-        status = "Approved" if user_data.get("approved") else "Pending"
-        role = user_data.get("role", "encoder").title()
+    if users:
+        # Create user data for Streamlit display
+        user_data_list = []
+        non_admin_users = []
         
-        with st.expander(f"{username} - {status} ({role})"):
-            col1, col2 = st.columns([2, 1])
+        for username, user_data in users.items():
+            status = "Approved" if user_data.get("approved") else "Pending"
+            role = user_data.get("role", "encoder").title()
             
-            with col1:
-                st.write(f"**Name:** {user_data.get('first_name', '')} {user_data.get('last_name', '')}")
-                st.write(f"**Email:** {user_data.get('email', '')}")
-                st.write(f"**Organization:** {user_data.get('organization', '')}")
-                st.write(f"**Position:** {user_data.get('position', '')}")
-                st.write(f"**Contact:** {user_data.get('contact_number', '')}")
-                st.write(f"**Created:** {format_timestamp(user_data.get('created_at', 0))}")
+            user_display = f"{user_data.get('first_name', '')} {user_data.get('last_name', '')}" 
+            if not user_display.strip():
+                user_display = username
+            
+            created_date = format_timestamp(user_data.get('created_at', 0))
+            approved_info = ""
+            if user_data.get("approved_at"):
+                approved_date = format_timestamp(user_data.get('approved_at', 0))
+                approved_by = user_data.get('approved_by', 'Unknown')
+                approved_info = f"{approved_date} by {approved_by}"
+            
+            user_data_list.append({
+                "User": f"{user_display} (@{username})",
+                "Role": role,
+                "Email": user_data.get('email', 'N/A'),
+                "Contact": user_data.get('contact_number', 'N/A'),
+                "Organization": user_data.get('organization', 'N/A'),
+                "Position": user_data.get('position', 'N/A'),
+                "Status": status,
+                "Created": created_date,
+                "Approved": approved_info if approved_info else "Not approved"
+            })
+            
+            if user_data.get("role") != "admin":
+                non_admin_users.append(username)
+        
+        # Display as Streamlit dataframe
+        import pandas as pd
+        df = pd.DataFrame(user_data_list)
+        
+        st.dataframe(
+            df,
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "User": st.column_config.TextColumn("User", width="large"),
+                "Role": st.column_config.TextColumn("Role", width="small"),
+                "Email": st.column_config.TextColumn("Email", width="medium"),
+                "Contact": st.column_config.TextColumn("Contact", width="medium"),
+                "Organization": st.column_config.TextColumn("Organization", width="medium"),
+                "Position": st.column_config.TextColumn("Position", width="medium"),
+                "Status": st.column_config.TextColumn("Status", width="small"),
+                "Created": st.column_config.TextColumn("Created", width="medium"),
+                "Approved": st.column_config.TextColumn("Approved", width="medium")
+            }
+        )
+        
+        # Action area below table with visual separation
+        st.markdown("---")  # Add separator line
+        st.markdown("#### User Management Actions")
+        
+        # Create management actions table
+        non_admin_users = [username for username, user_data in users.items() if user_data.get("role") != "admin"]
+        
+        if non_admin_users:
+            # User deletion interface in table format
+            import pandas as pd
+            
+            # Statistics data
+            total_users = len(users)
+            approved_count = len([u for u in users.values() if u.get("approved")])
+            pending_count = total_users - approved_count
+            admin_count = len([u for u in users.values() if u.get("role") == "admin"])
+            
+            # Create management data for table display
+            management_data = [
+                {"Action Type": "User Deletion", "Available Users": len(non_admin_users), "Status": "Ready"},
+                {"Action Type": "Total Users", "Available Users": total_users, "Status": "Active"},
+                {"Action Type": "Approved Users", "Available Users": approved_count, "Status": "Verified"},
+                {"Action Type": "Pending Users", "Available Users": pending_count, "Status": "Waiting"},
+                {"Action Type": "Admin Users", "Available Users": admin_count, "Status": "Protected"}
+            ]
+            
+            df_management = pd.DataFrame(management_data)
+            st.dataframe(
+                df_management,
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    "Action Type": st.column_config.TextColumn("Action Type", width="medium"),
+                    "Available Users": st.column_config.NumberColumn("Count", width="small"),
+                    "Status": st.column_config.TextColumn("Status", width="small")
+                }
+            )
+            
+            # User deletion controls below table
+            st.markdown("**User Deletion Controls:**")
+            
+            # Create user deletion table with buttons
+            deletion_table_data = []
+            for username in non_admin_users:
+                user_data = users[username]
+                user_display = f"{user_data.get('first_name', '')} {user_data.get('last_name', '')}".strip()
+                display_name = user_display if user_display else username
                 
-                if user_data.get("approved_at"):
-                    st.write(f"**Approved:** {format_timestamp(user_data.get('approved_at', 0))}")
-                    st.write(f"**Approved by:** {user_data.get('approved_by', 'Unknown')}")
+                deletion_table_data.append({
+                    "Username": username,
+                    "Full Name": display_name,
+                    "Email": user_data.get('email', 'N/A'),
+                    "Role": user_data.get('role', 'user'),
+                    "Status": "Active"
+                })
             
-            with col2:
-                if user_data.get("role") != "admin":
-                    # Add confirmation checkbox
-                    confirm_delete = st.checkbox(f"Confirm deletion of user '{username}'", key=f"confirm_{username}")
-                    
-                    if st.button("Delete User", key=f"delete_{username}"):
-                        if confirm_delete:
-                            # Backup deleted user
-                            backup_deleted_user(username, user_data)
-                            # Remove user from active users
-                            del users[username]
-                            save_users(users)
-                            st.success(f"User {username} deleted successfully!")
-                            st.rerun()
-                        else:
-                            st.error("Please check the confirmation box to delete this user.")
+            if deletion_table_data:
+                df_deletion = pd.DataFrame(deletion_table_data)
+                st.dataframe(
+                    df_deletion,
+                    use_container_width=True,
+                    hide_index=True,
+                    column_config={
+                        "Username": st.column_config.TextColumn("Username", width="medium"),
+                        "Full Name": st.column_config.TextColumn("Full Name", width="medium"),
+                        "Email": st.column_config.TextColumn("Email", width="medium"),
+                        "Role": st.column_config.TextColumn("Role", width="small"),
+                        "Status": st.column_config.TextColumn("Status", width="small")
+                    }
+                )
+                
+                # Deletion action buttons
+                st.markdown("**Select User to Delete:**")
+                
+                # Create buttons in rows of maximum 3 columns
+                for i in range(0, len(non_admin_users), 3):
+                    cols = st.columns(3)
+                    for j, col in enumerate(cols):
+                        if i + j < len(non_admin_users):
+                            username = non_admin_users[i + j]
+                            with col:
+                                if st.button(f"🗑️ Delete {username}", key=f"delete_{username}", type="secondary", use_container_width=True):
+                                    # Confirm deletion with a confirmation step
+                                    if f"confirm_delete_{username}" not in st.session_state:
+                                        st.session_state[f"confirm_delete_{username}"] = True
+                                        st.warning(f"Click again to confirm deletion of {username}")
+                                        st.rerun()
+                                    else:
+                                        # Backup deleted user
+                                        backup_deleted_user(username, users[username])
+                                        # Remove user from active users
+                                        del users[username]
+                                        save_users(users)
+                                        # Clear confirmation state
+                                        del st.session_state[f"confirm_delete_{username}"]
+                                        st.success(f"User {username} deleted successfully!")
+                                        st.rerun()
+        else:
+            # Empty state table
+            import pandas as pd
+            empty_data = [{"Message": "No non-admin users available for deletion", "Status": "No Action Required"}]
+            df_empty = pd.DataFrame(empty_data)
+            st.dataframe(df_empty, use_container_width=True, hide_index=True)
+    else:
+        st.markdown("""
+            <div class="empty-state">
+                <div class="empty-state-icon"></div>
+                <h3>No Users Found</h3>
+                <p>No users are registered in the system.</p>
+            </div>
+        """, unsafe_allow_html=True)
 
 elif selected_tab == "User Data Management":
-    st.markdown("<h2>User Data Management</h2>", unsafe_allow_html=True)
-    
     # Get all users
     all_users = load_users()
     regular_users = {k: v for k, v in all_users.items() if v.get("role") != "admin"}
     
     if regular_users:
-        st.markdown(f"### {len(regular_users)} Registered Users")
+        st.markdown(f"### Data Management for {len(regular_users)} Users")
         
         # Check for user data files
         from utils.data_manager import data_manager
+        
+        # Create user data list for table display
+        user_data_list = []
         
         for username, user_data in regular_users.items():
             user_name = f"{user_data.get('first_name', '')} {user_data.get('last_name', '')}".strip()
@@ -1092,135 +2023,217 @@ elif selected_tab == "User Data Management":
             
             # Check if user has data
             has_data = data_manager.user_has_data(username)
-            status_icon = "[DATA]" if has_data else "[EMPTY]"
             status_text = "Has Data" if has_data else "No Data"
             
-            # Create expandable section for each user
-            with st.expander(f"{status_icon} {display_name} ({username}) - {status_text}"):
-                col1, col2 = st.columns(2)
+            # Get data summary
+            if has_data:
+                summary = get_user_data_summary(username)
+                total_records = sum(summary.values()) if summary else 0
+            else:
+                total_records = 0
+            
+            approval_status = "Approved" if user_data.get('approved') else "Pending"
+            
+            user_data_list.append({
+                "User": f"{display_name} (@{username})",
+                "Status": approval_status,
+                "Email": user_data.get('email', 'N/A'),
+                "Organization": user_data.get('organization', 'N/A'),
+                "Data Status": status_text,
+                "Total Records": total_records,
+                "Actions": "See options below table"
+            })
+        
+        # Display as Streamlit dataframe
+        import pandas as pd
+        df = pd.DataFrame(user_data_list)
+        
+        st.dataframe(
+            df,
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "User": st.column_config.TextColumn("User", width="large"),
+                "Status": st.column_config.TextColumn("Status", width="small"),
+                "Email": st.column_config.TextColumn("Email", width="medium"),
+                "Organization": st.column_config.TextColumn("Organization", width="medium"),
+                "Data Status": st.column_config.TextColumn("Data Status", width="small"),
+                "Total Records": st.column_config.NumberColumn("Total Records", width="small"),
+                "Actions": st.column_config.TextColumn("Actions", width="medium")
+            }
+        )
+        
+        # Action area below table
+        st.markdown("#### Data Management Actions")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("**User Selection:**")
+            users_with_data = [username for username, user_data in regular_users.items() 
+                             if data_manager.user_has_data(username)]
+            
+            if users_with_data:
+                selected_user = st.selectbox("Select user for data operations:", users_with_data)
                 
-                with col1:
-                    st.write(f"**Email:** {user_data.get('email', 'N/A')}")
-                    st.write(f"**Status:** {'Approved' if user_data.get('approved') else 'Pending'}")
+                if st.button("Check Duplicates", key="check_dupes_selected", use_container_width=True):
+                    st.session_state["show_duplicates_selected"] = selected_user
+                    st.rerun()
                 
-                with col2:
-                    if has_data:
-                        # Button to check duplicates for this user
-                        if st.button(f"Check Duplicates", key=f"check_dupes_{username}", use_container_width=True):
-                            st.session_state[f"show_duplicates_{username}"] = True
-                            st.rerun()
-                        
-                        # Button to view data summary
-                        if st.button(f"View Data Summary", key=f"view_summary_{username}", use_container_width=True):
-                            st.session_state[f"show_summary_{username}"] = True
-                            st.rerun()
+                if st.button("View Summary", key="view_summary_selected", use_container_width=True):
+                    st.session_state["show_summary_selected"] = selected_user
+                    st.rerun()
+            else:
+                st.info("No users with data available")
+        
+        with col2:
+            st.markdown("**Data Statistics:**")
+            total_users_with_data = len([u for u in regular_users.keys() if data_manager.user_has_data(u)])
+            total_users_without_data = len(regular_users) - total_users_with_data
+            total_all_records = sum([sum(get_user_data_summary(u).values()) for u in regular_users.keys() if data_manager.user_has_data(u)])
+            
+            st.write(f"Users with Data: **{total_users_with_data}**")
+            st.write(f"Users without Data: **{total_users_without_data}**")
+            st.write(f"Total Records: **{total_all_records}**")
+        
+        # Show detailed results if requested
+        if "show_duplicates_selected" in st.session_state:
+            username = st.session_state["show_duplicates_selected"]
+            st.markdown(f"#### Duplicate Check Results for @{username}")
+            duplicates = check_user_duplicates(username)
+            
+            if duplicates:
+                for sheet_name, sheet_duplicates in duplicates.items():
+                    if sheet_duplicates:
+                        st.warning(f"**{sheet_name}:**")
+                        for field, duplicate_list in sheet_duplicates.items():
+                            if duplicate_list:
+                                st.write(f"• **{field}:** {len(duplicate_list)} duplicate(s)")
+                                for dup in duplicate_list:
+                                    st.write(f"  - '{dup['value']}' appears {dup['count']} times")
+            else:
+                st.success("No duplicates found!")
+            
+            if st.button("Close Duplicate Results", key="close_dupes_selected"):
+                del st.session_state["show_duplicates_selected"]
+                st.rerun()
+        
+        # Show data summary if requested
+        if "show_summary_selected" in st.session_state:
+            username = st.session_state["show_summary_selected"]
+            st.markdown(f"#### Data Summary for @{username}")
+            summary = get_user_data_summary(username)
+            
+            if summary:
+                summary_data = []
+                for sheet_name, count in summary.items():
+                    if count > 0:
+                        summary_data.append({
+                            "Sheet Name": sheet_name,
+                            "Record Count": count
+                        })
                 
-                # Show duplicates if requested
-                if st.session_state.get(f"show_duplicates_{username}", False):
-                    st.markdown("**Duplicate Check Results:**")
-                    duplicates = check_user_duplicates(username)
-                    
-                    if duplicates:
-                        for sheet_name, sheet_duplicates in duplicates.items():
-                            if sheet_duplicates:
-                                st.warning(f"**{sheet_name}:**")
-                                for field, duplicate_list in sheet_duplicates.items():
-                                    if duplicate_list:
-                                        st.write(f"• **{field}:** {len(duplicate_list)} duplicate(s)")
-                                        for dup in duplicate_list:
-                                            st.write(f"  - '{dup['value']}' appears {dup['count']} times")
-                    else:
-                        st.success("No duplicates found!")
-                    
-                    if st.button(f"Close Results", key=f"close_dupes_{username}"):
-                        st.session_state[f"show_duplicates_{username}"] = False
-                        st.rerun()
-                
-                # Show data summary if requested
-                if st.session_state.get(f"show_summary_{username}", False):
-                    st.markdown("**Data Summary:**")
-                    summary = get_user_data_summary(username)
-                    
-                    if summary:
-                        for sheet_name, count in summary.items():
-                            if count > 0:
-                                st.write(f"• **{sheet_name}:** {count} records")
-                    else:
-                        st.info("No data found")
-                    
-                    if st.button(f"Close Summary", key=f"close_summary_{username}"):
-                        st.session_state[f"show_summary_{username}"] = False
-                        st.rerun()
+                if summary_data:
+                    summary_df = pd.DataFrame(summary_data)
+                    st.dataframe(
+                        summary_df,
+                        use_container_width=True,
+                        hide_index=True,
+                        column_config={
+                            "Sheet Name": st.column_config.TextColumn("Sheet Name", width="large"),
+                            "Record Count": st.column_config.NumberColumn("Record Count", width="small")
+                        }
+                    )
+                else:
+                    st.info("No data records found")
+            else:
+                st.info("No data found")
+            
+            if st.button("Close Summary Results", key="close_summary_selected"):
+                del st.session_state["show_summary_selected"]
+                st.rerun()
     else:
-        st.info("No regular users registered yet")
+        st.markdown("""
+            <div class="empty-state">
+                <div class="empty-state-icon"></div>
+                <h3>No Regular Users</h3>
+                <p>No regular users are registered yet.</p>
+            </div>
+        """, unsafe_allow_html=True)
 
 elif selected_tab == "System Data Analysis":
-    st.markdown("<h2>System Data Analysis</h2>", unsafe_allow_html=True)
+    st.markdown("### System-Wide Data Analysis")
     st.markdown("*Comprehensive data scanning across all users - like analyzing an entire Excel workbook*")
     
     # System-wide duplicate detection
-    st.markdown("### System-Wide Duplicate Detection")
-    st.info("This tool scans ALL user data to find identical entries across different encoders, helping identify data redundancy and potential coordination issues.")
+    st.markdown("#### System-Wide Duplicate Detection")
+    st.info("This tool scans ALL user data to find identical entries across different encoders.")
     
-    # Add custom CSS for this specific button
-    st.markdown("""
-        <style>
-        div[data-testid="stButton"] > button:first-child {
-            background-color: #172087 !important;
-            border-color: #172087 !important;
-            color: white !important;
-        }
-        div[data-testid="stButton"] > button:first-child:hover {
-            background-color: #1e3a8a !important;
-            border-color: #1e3a8a !important;
-            box-shadow: 0 4px 8px rgba(23, 32, 135, 0.3) !important;
-        }
-        </style>
-    """, unsafe_allow_html=True)
-    
-    if st.button("Scan All User Data for Duplicates", type="primary", use_container_width=True, key="dti_scan_button"):
+    if st.button("Scan All User Data for Duplicates", type="primary", use_container_width=True):
         with st.spinner("Scanning all user data... This may take a moment."):
             system_duplicates = check_system_wide_duplicates()
         
         if system_duplicates:
-            st.markdown("### System-Wide Duplicates Found")
+            st.markdown("#### System-Wide Duplicates Found")
             
             for sheet_name, sheet_duplicates in system_duplicates.items():
-                st.markdown(f"#### {sheet_name} Sheet")
+                st.markdown(f"##### {sheet_name} Sheet")
+                
+                duplicates_html = """
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Field</th>
+                            <th>Duplicate Value</th>
+                            <th>Occurrences</th>
+                            <th>Encoders Involved</th>
+                            <th>Severity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                """
                 
                 for field, duplicates in sheet_duplicates.items():
-                    st.markdown(f"**{field} Duplicates:**")
-                    
                     for dup_info in duplicates:
                         value = dup_info['value']
                         total = dup_info['total_occurrences']
                         encoder_count = dup_info['encoders_involved']
                         is_cross_encoder = dup_info['cross_encoder']
                         
-                        # Color code based on severity
-                        if is_cross_encoder:
-                            st.error(f"**CRITICAL**: '{value}' - {total} occurrences across {encoder_count} different encoders")
-                        else:
-                            st.warning(f"**WARNING**: '{value}' - {total} duplicate entries by same encoder")
+                        severity = "CRITICAL" if is_cross_encoder else "WARNING"
+                        severity_class = "status-pending" if is_cross_encoder else "status-approved"
                         
-                        # Show encoder details
+                        encoder_details = []
                         for encoder_detail in dup_info['encoder_details']:
                             encoder = encoder_detail['encoder']
                             count = encoder_detail['count']
-                            st.write(f"   • **{encoder}**: {count} entries")
+                            encoder_details.append(f"{encoder} ({count})")
                         
-                        st.write("")  # Add spacing
+                        duplicates_html += f"""
+                            <tr>
+                                <td><strong>{field}</strong></td>
+                                <td>{value}</td>
+                                <td>{total}</td>
+                                <td>{', '.join(encoder_details)}</td>
+                                <td><span class="{severity_class}">{severity}</span></td>
+                            </tr>
+                        """
+                
+                duplicates_html += """
+                    </tbody>
+                </table>
+                """
+                
+                st.markdown(duplicates_html, unsafe_allow_html=True)
         else:
             st.success("**No system-wide duplicates found!** All data appears to be unique across all users.")
     
     st.markdown("---")
     
     # Data distribution analysis
-    st.markdown("### Data Distribution Analysis")
+    st.markdown("#### Data Distribution Analysis")
     
     if st.button("Analyze Data Distribution", type="secondary", use_container_width=True):
-        st.markdown("#### User Data Volume Analysis")
-        
         # Get all users and their data counts
         all_users = load_users()
         regular_users = {k: v for k, v in all_users.items() if v.get("role") != "admin"}
@@ -1240,17 +2253,26 @@ elif selected_tab == "System Data Analysis":
             total_records += user_total
         
         # Display summary metrics
-        col1, col2, col3, col4 = st.columns(4)
-        
-        with col1:
-            st.metric("Total System Records", total_records)
-        with col2:
-            st.metric("Active Data Users", len([u for u in user_data_summary.values() if u['total_records'] > 0]))
-        with col3:
-            st.metric("Empty Users", len([u for u in user_data_summary.values() if u['total_records'] == 0]))
-        with col4:
-            avg_records = total_records / len(regular_users) if regular_users else 0
-            st.metric("Avg Records/User", f"{avg_records:.1f}")
+        st.markdown("""
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-value">""" + str(total_records) + """</div>
+                    <div class="metric-label">Total System Records</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">""" + str(len([u for u in user_data_summary.values() if u['total_records'] > 0])) + """</div>
+                    <div class="metric-label">Active Data Users</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">""" + str(len([u for u in user_data_summary.values() if u['total_records'] == 0])) + """</div>
+                    <div class="metric-label">Empty Users</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">""" + f"{total_records / len(regular_users) if regular_users else 0:.1f}" + """</div>
+                    <div class="metric-label">Avg Records/User</div>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
         
         # Show per-user breakdown
         st.markdown("#### Per-User Data Breakdown")
@@ -1258,142 +2280,123 @@ elif selected_tab == "System Data Analysis":
         # Sort users by total records (descending)
         sorted_users = sorted(user_data_summary.items(), key=lambda x: x[1]['total_records'], reverse=True)
         
+        breakdown_html = """
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Total Records</th>
+                    <th>Top Sheets</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+        """
+        
         for username, data_info in sorted_users:
             user_data = regular_users[username]
             user_name = f"{user_data.get('first_name', '')} {user_data.get('last_name', '')}".strip()
             display_name = user_name if user_name else username
             
             total = data_info['total_records']
+            sheet_data = data_info['sheet_breakdown']
+            active_sheets = {k: v for k, v in sheet_data.items() if v > 0}
             
-            if total > 0:
-                with st.expander(f"[DATA] {display_name} ({username}) - {total} total records"):
-                    # Show sheet breakdown
-                    sheet_data = data_info['sheet_breakdown']
-                    active_sheets = {k: v for k, v in sheet_data.items() if v > 0}
-                    
-                    if active_sheets:
-                        cols = st.columns(min(3, len(active_sheets)))
-                        for i, (sheet, count) in enumerate(active_sheets.items()):
-                            with cols[i % 3]:
-                                st.metric(sheet, count)
-            else:
-                st.info(f"[EMPTY] {display_name} ({username}) - No data entered")
+            # Get top 3 sheets
+            top_sheets = sorted(active_sheets.items(), key=lambda x: x[1], reverse=True)[:3]
+            sheet_summary = ', '.join([f"{sheet}: {count}" for sheet, count in top_sheets])
+            
+            status = "Active" if total > 0 else "Empty"
+            status_class = "status-approved" if total > 0 else "status-pending"
+            
+            breakdown_html += f"""
+                <tr>
+                    <td>
+                        <strong>{display_name}</strong><br>
+                        <small>@{username}</small>
+                    </td>
+                    <td><strong>{total}</strong></td>
+                    <td>{sheet_summary if sheet_summary else 'No data'}</td>
+                    <td><span class="{status_class}">{status}</span></td>
+                </tr>
+            """
+        
+        breakdown_html += """
+            </tbody>
+        </table>
+        """
+        
+        st.markdown(breakdown_html, unsafe_allow_html=True)
 
 elif selected_tab == "System Settings":
-    st.markdown("<h2>System Settings</h2>", unsafe_allow_html=True)
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("### System Information")
-        users = load_users()
-        total_users = len(users)
-        approved_users = len([u for u in users.values() if u.get("approved")])
-        pending_users = total_users - approved_users
-        
-        st.metric("Total Users", total_users)
-        st.metric("Approved Users", approved_users)
-        st.metric("Pending Approvals", pending_users)
-
-elif selected_tab == "Deleted Users":
-    st.markdown("<h2>Deleted Users</h2>", unsafe_allow_html=True)
-    
-    backup_data = load_deleted_users_backup()
-    
-    if not backup_data:
-        st.info("No deleted users found in backup.")
-    else:
-        st.markdown("### Deleted Users List")
-        
-        for username, user_data in backup_data.items():
-            deleted_at = user_data.get("deleted_at", 0)
-            deleted_by = user_data.get("deleted_by", "Unknown")
-            
-            with st.expander(f"{username} - Deleted on {format_timestamp(deleted_at)}"):
-                col1, col2 = st.columns([2, 1])
-                
-                with col1:
-                    st.write(f"**Name:** {user_data.get('first_name', '')} {user_data.get('last_name', '')}")
-                    st.write(f"**Email:** {user_data.get('email', '')}")
-                    st.write(f"**Organization:** {user_data.get('organization', '')}")
-                    st.write(f"**Position:** {user_data.get('position', '')}")
-                    st.write(f"**Contact:** {user_data.get('contact_number', '')}")
-                    st.write(f"**Created:** {format_timestamp(user_data.get('created_at', 0))}")
-                    st.write(f"**Deleted:** {format_timestamp(deleted_at)}")
-                    st.write(f"**Deleted by:** {deleted_by}")
-                
-                with col2:
-                    if st.button("Restore User", key=f"restore_{username}"):
-                        if restore_user_from_backup(username, backup_data):
-                            st.success(f"User {username} restored successfully!")
-                            st.rerun()
-                        else:
-                            st.error(f"Failed to restore user {username}")
-
-# Professional Admin Sidebar
-with st.sidebar:
-    # Admin header section
-    st.markdown("""
-        <div class="sidebar-header">
-            <div class="admin-logo">A</div>
-            <div class="admin-title">Admin Panel</div>
-            <div class="admin-subtitle">Management Dashboard</div>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    # Navigation section
-    st.subheader("Navigation")
-    
-    # Navigation buttons
-    admin_tabs = [
-        "Pending Approvals",
-        "Active Users",
-        "All Users",
-        "User Data Management",
-        "System Data Analysis", 
-        "System Settings",
-        "Deleted Users"
-    ]
-    
-    for tab in admin_tabs:
-        if st.button(tab, key=f"nav_{tab}", use_container_width=True):
-            st.session_state.admin_selected_tab = tab
-            st.rerun()
-    
-    # Divider
-    st.markdown('<div class="nav-divider"></div>', unsafe_allow_html=True)
-    
-    # System stats section
     users = load_users()
-    active_users = get_active_users()
     total_users = len(users)
     approved_users = len([u for u in users.values() if u.get("approved")])
     pending_users = total_users - approved_users
-    online_count = len([u for u in active_users if u['status'] == 'online'])
     
-    st.markdown(f"""
-        <div class="admin-stats">
-            <h4>System Overview</h4>
-            <div class="stats-info">Users: {total_users}</div>
-            <div class="stats-info">Active: {approved_users}</div>
-            <div class="stats-info">Online: {online_count}</div>
-            <div class="stats-info">Pending: {pending_users}</div>
+    st.markdown("### System Configuration")
+    
+    # System metrics
+    st.markdown("""
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-value">""" + str(total_users) + """</div>
+                <div class="metric-label">Total Users</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">""" + str(approved_users) + """</div>
+                <div class="metric-label">Approved Users</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">""" + str(pending_users) + """</div>
+                <div class="metric-label">Pending Approvals</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">""" + str(session_manager.get_active_sessions_count()) + """</div>
+                <div class="metric-label">Active Sessions</div>
+            </div>
         </div>
     """, unsafe_allow_html=True)
     
-    # Admin Configuration Info
-    st.markdown("---")
-    st.markdown("### Admin Configuration")
-    
+    # Admin Configuration
+    st.markdown("#### Admin Configuration")
     admin_info = get_admin_credentials_display()
     
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown(f"**Username:** `{admin_info['username']}`")
-        st.markdown(f"**Email:** `{admin_info['email']}`")
-    with col2:
-        st.markdown(f"**Name:** {admin_info['name']}")
-        st.markdown(f"**Password:** {admin_info['password']}")
+    admin_config_html = f"""
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Setting</th>
+                <th>Value</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Username</strong></td>
+                <td><code>{admin_info['username']}</code></td>
+                <td>Administrator login username</td>
+            </tr>
+            <tr>
+                <td><strong>Email</strong></td>
+                <td><code>{admin_info['email']}</code></td>
+                <td>Administrator email address</td>
+            </tr>
+            <tr>
+                <td><strong>Name</strong></td>
+                <td>{admin_info['name']}</td>
+                <td>Administrator full name</td>
+            </tr>
+            <tr>
+                <td><strong>Password</strong></td>
+                <td><code>{admin_info['password']}</code></td>
+                <td>Secure password (hidden)</td>
+            </tr>
+        </tbody>
+    </table>
+    """
+    
+    st.markdown(admin_config_html, unsafe_allow_html=True)
     
     st.info("Admin credentials are stored securely in Streamlit secrets")
     
@@ -1401,12 +2404,10 @@ with st.sidebar:
         try:
             # Remove existing admin and recreate
             users = load_users()
-            # Find and remove any existing admin accounts
             admin_keys_to_remove = [k for k, v in users.items() if v.get("role") == "admin"]
             for key in admin_keys_to_remove:
                 del users[key]
             
-            # Add new admin
             created, message = create_admin_if_not_exists(users)
             if created:
                 save_users(users)
@@ -1416,62 +2417,168 @@ with st.sidebar:
                 st.warning("Could not reset admin account")
         except Exception as e:
             st.error(f"Error resetting admin account: {str(e)}")
+
+elif selected_tab == "Deleted Users":
+    backup_data = load_deleted_users_backup()
     
-    st.markdown("---")
-    
-    # User info section - placed right below System Overview
-    auth_cookie = st.session_state["auth_cookie"]
-    user_name = auth_cookie.get("first_name", auth_cookie.get("username", "Admin"))
-    user_role = auth_cookie.get("role", "admin")
-    
-    # Safety check for user_name
-    avatar_letter = user_name[0].upper() if user_name else "A"
-    
-    st.markdown(f"""
-        <div class="user-info">
-            <div class="user-avatar">{avatar_letter}</div>
-            <div class="user-name">{user_name if user_name else "Admin"}</div>
-            <div class="user-role">{user_role} • Active</div>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    # Add some spacing before logout button
-    st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
-    # Custom styled Logout button for better visibility
-    logout_btn_css = """
-    <style>
-    .dti-logout-btn {
-        background-color: #172087 !important;
-        color: #fff !important;
-        border: 2.5px solid #fff !important;
-        border-radius: 8px !important;
-        padding: 16px 0 !important;
-        font-size: 18px !important;
-        font-weight: 700 !important;
-        width: 100% !important;
-        margin-top: 10px !important;
-        margin-bottom: 10px !important;
-        box-shadow: 0 2px 8px rgba(23,32,135,0.15) !important;
-        transition: background 0.2s, box-shadow 0.2s, border 0.2s;
-    }
-    .dti-logout-btn:hover {
-        background-color: #1e3a8a !important;
-        box-shadow: 0 4px 16px rgba(23,32,135,0.25) !important;
-        border: 3px solid #fff !important;
-    }
-    </style>
-    """
-    st.markdown(logout_btn_css, unsafe_allow_html=True)
-    if st.button("Logout", key="sidebar_logout", use_container_width=True):
+    if not backup_data:
+        st.markdown("""
+            <div class="empty-state">
+                <div class="empty-state-icon"></div>
+                <h3>No Deleted Users</h3>
+                <p>No users have been deleted from the system.</p>
+            </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown(f"### {len(backup_data)} Deleted Users")
+        
+        # Create deleted user data for Streamlit display
+        deleted_user_list = []
+        
+        for username, user_data in backup_data.items():
+            deleted_at = user_data.get("deleted_at", 0)
+            deleted_by = user_data.get("deleted_by", "Unknown")
+            created_at = format_timestamp(user_data.get('created_at', 0))
+            
+            user_display = f"{user_data.get('first_name', '')} {user_data.get('last_name', '')}".strip()
+            display_name = user_display if user_display else username
+            
+            deleted_user_list.append({
+                "User": f"{display_name} (@{username})",
+                "Email": user_data.get('email', 'N/A'),
+                "Contact": user_data.get('contact_number', 'N/A'),
+                "Organization": user_data.get('organization', 'N/A'),
+                "Position": user_data.get('position', 'N/A'),
+                "Created": created_at,
+                "Deleted": format_timestamp(deleted_at),
+                "Deleted By": deleted_by,
+                "Status": "Deleted User"
+            })
+        
+        # Display as Streamlit dataframe
+        import pandas as pd
+        df = pd.DataFrame(deleted_user_list)
+        
+        st.dataframe(
+            df,
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "User": st.column_config.TextColumn("User", width="large"),
+                "Email": st.column_config.TextColumn("Email", width="medium"),
+                "Contact": st.column_config.TextColumn("Contact", width="medium"),
+                "Organization": st.column_config.TextColumn("Organization", width="medium"),
+                "Position": st.column_config.TextColumn("Position", width="medium"),
+                "Created": st.column_config.TextColumn("Created", width="medium"),
+                "Deleted": st.column_config.TextColumn("Deleted", width="medium"),
+                "Deleted By": st.column_config.TextColumn("Deleted By", width="small"),
+                "Status": st.column_config.TextColumn("Status", width="small")
+            }
+        )
+        
+        # Restoration area below table with visual separation
+        st.markdown("---")  # Add separator line
+        st.markdown("#### User Restoration")
+        
+        # Create restoration summary table
+        import pandas as pd
+        
+        # Create restoration data for table display
+        restoration_data = [
+            {"Restoration Type": "Available Backups", "Count": len(backup_data), "Status": "Ready"},
+            {"Restoration Type": "Total Deleted Users", "Count": len(backup_data), "Status": "Archived"},
+            {"Restoration Type": "Restoration Actions", "Count": 1, "Status": "Available"}
+        ]
+        
+        df_restoration = pd.DataFrame(restoration_data)
+        st.dataframe(
+            df_restoration,
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "Restoration Type": st.column_config.TextColumn("Restoration Type", width="medium"),
+                "Count": st.column_config.NumberColumn("Count", width="small"),
+                "Status": st.column_config.TextColumn("Status", width="small")
+            }
+        )
+        
+        # User restoration controls below table
+        st.markdown("**User Restoration Controls:**")
+        
+        # Create user restoration table with buttons
+        restoration_table_data = []
+        for username, user_data in backup_data.items():
+            user_display = f"{user_data.get('first_name', '')} {user_data.get('last_name', '')}".strip()
+            display_name = user_display if user_display else username
+            deleted_at = format_timestamp(user_data.get("deleted_at", 0))
+            deleted_by = user_data.get("deleted_by", "Unknown")
+            
+            restoration_table_data.append({
+                "Username": username,
+                "Full Name": display_name,
+                "Email": user_data.get('email', 'N/A'),
+                "Deleted Date": deleted_at,
+                "Deleted By": deleted_by
+            })
+        
+        if restoration_table_data:
+            df_restore = pd.DataFrame(restoration_table_data)
+            st.dataframe(
+                df_restore,
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    "Username": st.column_config.TextColumn("Username", width="medium"),
+                    "Full Name": st.column_config.TextColumn("Full Name", width="medium"),
+                    "Email": st.column_config.TextColumn("Email", width="medium"),
+                    "Deleted Date": st.column_config.TextColumn("Deleted Date", width="medium"),
+                    "Deleted By": st.column_config.TextColumn("Deleted By", width="small")
+                }
+            )
+            
+            # Restoration action buttons
+            st.markdown("**Select User to Restore:**")
+            usernames = list(backup_data.keys())
+            
+            # Create buttons in rows of maximum 3 columns
+            for i in range(0, len(usernames), 3):
+                cols = st.columns(3)
+                for j, col in enumerate(cols):
+                    if i + j < len(usernames):
+                        username = usernames[i + j]
+                        with col:
+                            if st.button(f"🔄 Restore {username}", key=f"restore_{username}", type="primary", use_container_width=True):
+                                if restore_user_from_backup(username, backup_data):
+                                    st.success(f"User {username} restored successfully!")
+                                    st.rerun()
+                                else:
+                                    st.error(f"Failed to restore user {username}")
+
+# Content area closed
+st.markdown('</div>', unsafe_allow_html=True)  # Close content-section div
+
+# Footer with proper spacing
+st.markdown("""
+<div style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #e5e7eb;">
+    <div style="text-align: center; margin-bottom: 1.5rem;">
+        <strong>MSME CPMS Admin Dashboard</strong>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+# Action buttons
+col1, col2, col3 = st.columns([2, 1, 1])
+
+with col1:
+    pass  # Empty column for spacing
+
+with col2:
+    if st.button("Refresh Dashboard", use_container_width=True):
+        st.rerun()
+
+with col3:
+    if st.button("🚪 Logout", use_container_width=True, type="primary"):
         st.session_state["authenticated"] = False
         st.session_state["auth_cookie"] = None
-        # Clear browser-specific session
         session_manager.clear_session()
         st.switch_page("main.py")
-    # Add custom class to the button using JavaScript
-    st.markdown("""
-    <script>
-    const logoutBtn = window.parent.document.querySelector('button[data-testid="sidebar_logout"]');
-    if (logoutBtn) { logoutBtn.classList.add('dti-logout-btn'); }
-    </script>
-    """, unsafe_allow_html=True)
