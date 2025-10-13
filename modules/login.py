@@ -79,17 +79,20 @@ def show():
         
         /* Login button styling */
         .stButton>button {
-            width: 30%;
-            float: right;
-            margin-right: 100px;
-            background-color: #f0f0f0;
-            color: black;
+            width: 100%;
+            margin: 1rem 0;
+            padding: 0.75rem;
+            background-color: #172087;
+            color: white;
             border: none;
-            transition: background-color 0.3s ease;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
         }
         .stButton>button:hover {
-            background-color: #1a2b5c;
-            color: white;
+            background-color: #1e40af;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(23, 32, 135, 0.3);
         }
         
         /* Move content upward */
@@ -132,11 +135,20 @@ def show():
         with st.form("login_form"):
             username = st.text_input("Username")
             password = st.text_input("Password", type="password")
-            col1, col2 = st.columns(2)
-            with col1:
-                login = st.form_submit_button("Login", use_container_width=True)
-            with col2:
-                signup = st.form_submit_button("Sign Up", use_container_width=True)
+            login = st.form_submit_button("Login", use_container_width=True)
+
+        # Information about account creation
+        st.markdown("---")
+        st.markdown("""
+        <div style='background-color: #f0f9ff; padding: 1rem; border-radius: 8px; border-left: 4px solid #3b82f6;'>
+            <h4 style='color: #1e40af; margin: 0 0 0.5rem 0;'>Need an Account?</h4>
+            <p style='margin: 0; color: #374151;'>
+                Encoder accounts are created by the system administrator. 
+                If you need access to the CPMS system, please contact your administrator 
+                who will create an account for you and provide your login credentials.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
 
         if login:
             # Advanced character cleaning
@@ -217,5 +229,4 @@ def show():
             else:
                 st.error("Username not found")
         
-        if signup:
-            st.switch_page("pages/signup.py")
+

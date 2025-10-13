@@ -19,6 +19,37 @@ def load_location_data():
     
     return regions_df, provinces_df, cities_df, barangays_df
 
+def load_provinces():
+    """Get dictionary of provinces by name"""
+    _, provinces_df, _, _ = load_location_data()
+    provinces = provinces_df['provDesc'].unique()
+    return {prov: prov for prov in sorted(provinces)}
+
+def load_cities(province):
+    """Get list of cities/municipalities for a given province"""
+    _, provinces_df, cities_df, _ = load_location_data()
+    
+    if province == "CITY OF DAVAO":
+        return ["DAVAO CITY"]
+    
+    province_row = provinces_df[provinces_df['provDesc'] == province]
+    if not province_row.empty:
+        province_code = province_row['provCode'].iloc[0]
+        cities = cities_df[cities_df['provCode'] == province_code]['citymunDesc'].unique()
+        return sorted(cities)
+    return []
+
+def load_barangays(city):
+    """Get list of barangays for a given city/municipality"""
+    _, _, cities_df, barangays_df = load_location_data()
+    
+    city_row = cities_df[cities_df['citymunDesc'] == city]
+    if not city_row.empty:
+        city_code = city_row['citymunCode'].iloc[0]
+        barangays = barangays_df[barangays_df['citymunCode'] == city_code]['brgyDesc'].unique()
+        return sorted(barangays)
+    return []
+
 def create_location_widgets():
     """Create simple cascading dropdown widgets without forms"""
     

@@ -1,276 +1,119 @@
 import streamlit as st
 # ...existing code...
 
-# --- Make signup page stateless: clear session state except form fields ---
-form_keys = [
-    "first_name", "last_name", "email", "username", "password", "confirm_password", "organization", "position", "contact_number", "agree_terms"
-]
-for key in list(st.session_state.keys()):
-    if key not in form_keys:
-        del st.session_state[key]
 import streamlit as st
-import time
-import json
-import os
-import hashlib
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from datetime import datetime
-from utils.admin_config import get_default_admin_user, create_admin_if_not_exists
 
-def hash_password(password):
-    """Hash password for security"""
-    return hashlib.sha256(password.encode()).hexdigest()
+st.set_page_config(page_title="CPMS - Account Information", page_icon="🏢", layout="wide")
 
-def load_users():
-    """Load users from JSON file"""
-    users_file = "data/users.json"
-    if os.path.exists(users_file):
-        try:
-            with open(users_file, 'r') as f:
-                users = json.load(f)
-                # Ensure admin user exists
-                created, message = create_admin_if_not_exists(users)
-                if created:
-                    save_users(users)
-                return users
-        except:
-            return get_default_admin_user()
-    else:
-        # Initialize with admin user
-        admin_user = get_default_admin_user()
-        save_users(admin_user)
-        return admin_user
-
-def save_users(users):
-    """Save users to JSON file"""
-    data_dir = "data"
-    if not os.path.exists(data_dir):
-        os.makedirs(data_dir)
-    
-    users_file = os.path.join(data_dir, "users.json")
-    with open(users_file, 'w') as f:
-        json.dump(users, f, indent=2)
-
-def send_registration_notification(user_data):
-    """Send email notification to admin when a new user registers"""
-    try:
-        # Email configuration - using Streamlit secrets (match secrets.toml keys)
-        sender_email = st.secrets.get("email", {}).get("username", "aaronmfbales@gmail.com")
-        sender_password = st.secrets.get("email", {}).get("password", "")
-        receiver_email = st.secrets.get("email", {}).get("from", "aaronmfbales@gmail.com")
-
-        # Create message
-        msg = MIMEMultipart()
-        msg['From'] = sender_email
-        msg['To'] = receiver_email
-        msg['Subject'] = "New User Registration - CPMS"
-
-        # Email body (removed location details)
-        body = f"""
-        New User Registration Notification
-
-        A new user has registered for the CPMS system.
-
-        User Details:
-        - Name: {user_data.get('first_name', '')} {user_data.get('last_name', '')}
-        - Username: {user_data.get('username', '')}
-        - Email: {user_data.get('email', '')}
-        - Organization: {user_data.get('organization', '')}
-        - Position: {user_data.get('position', '')}
-        - Contact Number: {user_data.get('contact_number', '')}
-        - Registration Date: {datetime.fromtimestamp(user_data.get('created_at', time.time())).strftime('%Y-%m-%d %H:%M:%S')}
-
-        Please log in to the admin panel to approve or reject this user.
-
-        Best regards,
-        CPMS System
-        """
-
-        msg.attach(MIMEText(body, 'plain'))
-
-        # Create SMTP session
-        server = smtplib.SMTP('smtp.gmail.com', 587)
-        server.starttls()
-        server.login(sender_email, sender_password)
-
-        # Send email
-        text = msg.as_string()
-        server.sendmail(sender_email, receiver_email, text)
-        server.quit()
-
-        return True
-    except Exception as e:
-        st.error(f"Failed to send email notification: {str(e)}")
-        return False
-
-st.set_page_config(page_title="CPMS Sign Up", page_icon="", layout="wide")
-
-# Hide Streamlit elements and style
-hide_st_style = """
+# Clean CSS
+st.markdown("""
     <style>
-#MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
-header {visibility: hidden;}
-.stButton>button {
-    background-color: #f0f0f0;
-    color: black;
-    border: none;
-    transition: background-color 0.3s ease;
-}
-.stButton>button:hover {
-    background-color: #1a2b5c;
-    color: white;
-}
-/* Add large margins and padding for a spacious layout */
-div.block-container {
-    padding: 60px 80px !important;
-    margin: 40px auto !important;
-    max-width: 900px !important;
-    background: #fff;
-    border-radius: 18px;
-    box-shadow: 0 8px 32px rgba(44,62,80,0.10);
-}
-.main .block-container {
-    padding: 60px 80px !important;
-    margin: 40px auto !important;
-    max-width: 900px !important;
-    background: #fff;
-    border-radius: 18px;
-    box-shadow: 0 8px 32px rgba(44,62,80,0.10);
-}
-/* Remove sidebar spacing */
-section[data-testid="stSidebar"] {
-    display: none !important;
-}
-/* Full width content with large padding */
-.main {
-    padding: 40px !important;
-    margin: 0 !important;
-    background: #f6f8fa;
-}
-span[data-baseweb="form-control-caption"] {
-    display: none !important;
-}
-</style>
-"""
-st.markdown(hide_st_style, unsafe_allow_html=True)
-
-st.markdown("<h2 style='text-align: left; color: #263d81; font-weight: bold; font-size: 40px;'>ACCOUNT REGISTRATION</h2>", unsafe_allow_html=True)
-
-# Create a 3-column layout for the form
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    st.markdown("### Personal Information")
-    first_name = st.text_input("First Name", key="first_name")
-    last_name = st.text_input("Last Name", key="last_name")
-    email = st.text_input("Email Address", key="email")
-
-with col2:
-    st.markdown("### Account Information")
-    username = st.text_input("Username", key="username")
-    password = st.text_input("Password", type="password", key="password")
-    confirm_password = st.text_input("Confirm Password", type="password", key="confirm_password")
-
-with col3:
-    st.markdown("### Organization Information")
-    organization = st.text_input("Organization/Department", key="organization")
-    position = st.text_input("Position/Title", key="position")
-    contact_number = st.text_input("Contact Number", key="contact_number")
-
-# Terms and Conditions - Full width
-st.markdown("### Terms and Conditions")
-with st.expander("Read Terms and Conditions"):
-    st.markdown("""
-    **1. Acceptance of Terms**  
-    By registering for an account, you agree to comply with and be bound by these Terms and Conditions. If you do not agree, please do not proceed with registration.
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
     
-    **2. User Responsibilities**  
-    You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. You agree to provide accurate and complete information during registration.
+    section[data-testid="stSidebar"] {
+        display: none !important;
+    }
     
-    **3. Data Privacy**  
-    Your personal information will be handled in accordance with our privacy policy. We are committed to protecting your data and will not share it with unauthorized third parties.
+    div.block-container {
+        padding: 60px 80px !important;
+        margin: 40px auto !important;
+        max-width: 800px !important;
+        background: #fff;
+        border-radius: 18px;
+        box-shadow: 0 8px 32px rgba(44,62,80,0.10);
+    }
     
-    **4. System Usage**  
-    You agree to use this system only for lawful purposes and in a manner that does not infringe the rights of others or restrict their use of the system.
+    .main {
+        padding: 40px !important;
+        margin: 0 !important;
+        background: #f6f8fa;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# Header
+st.markdown("""
+    <div style="background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 100%); padding: 2rem; border-radius: 10px; margin-bottom: 2rem;">
+        <h1 style="color: white; margin: 0; text-align: center; font-size: 2.5rem; font-weight: bold;">
+            🏢 MSME CPMS
+        </h1>
+        <p style="color: #bfdbfe; margin: 0.5rem 0 0 0; text-align: center; font-size: 1.1rem;">
+            Client Profile Management System
+        </p>
+    </div>
+""", unsafe_allow_html=True)
+
+# Main content
+st.markdown("## 📝 Account Information")
+
+st.markdown("""
+<div style='background-color: #f0f9ff; padding: 2rem; border-radius: 12px; border: 2px solid #3b82f6; margin: 2rem 0;'>
+    <h3 style='color: #1e40af; margin: 0 0 1rem 0; text-align: center;'>🔒 Account Creation Policy</h3>
+    <p style='font-size: 1.1rem; color: #374151; text-align: center; margin-bottom: 1.5rem;'>
+        <strong>Encoder accounts are now created exclusively by system administrators.</strong>
+    </p>
     
-    **5. Modification of Terms**  
-    We reserve the right to update or modify these Terms and Conditions at any time. Continued use of your account after changes constitutes acceptance of those changes.
-    """)
-agree_terms = st.checkbox("I agree to the terms and conditions", key="agree_terms")
+    <div style='background-color: white; padding: 1.5rem; border-radius: 8px; margin: 1rem 0;'>
+        <h4 style='color: #1e40af; margin: 0 0 1rem 0;'>📋 How to Get Access:</h4>
+        <ol style='color: #374151; margin: 0; padding-left: 1.5rem;'>
+            <li style='margin-bottom: 0.5rem;'><strong>Contact your administrator</strong> or focal person</li>
+            <li style='margin-bottom: 0.5rem;'><strong>Provide your information:</strong> Name, email, organization, position</li>
+            <li style='margin-bottom: 0.5rem;'><strong>Administrator creates your account</strong> with secure credentials</li>
+            <li style='margin-bottom: 0.5rem;'><strong>Receive login credentials</strong> via email</li>
+            <li style='margin-bottom: 0.5rem;'><strong>Login and start encoding data</strong> immediately</li>
+        </ol>
+    </div>
+    
+    <div style='background-color: #f0fdf4; padding: 1rem; border-radius: 8px; border-left: 4px solid #22c55e; margin: 1rem 0;'>
+        <h4 style='color: #15803d; margin: 0 0 0.5rem 0;'>✅ Benefits of Admin-Created Accounts:</h4>
+        <ul style='color: #374151; margin: 0; padding-left: 1.5rem;'>
+            <li>No spam emails from account registrations</li>
+            <li>Better security with controlled access</li>
+            <li>Immediate account approval - no waiting period</li>
+            <li>Centralized user management</li>
+            <li>Secure password generation</li>
+        </ul>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+st.markdown("---")
+
+# Contact information section
+st.markdown("## 📞 Need Help?")
 
 col1, col2 = st.columns(2)
+
 with col1:
-    submit = st.button("Register", use_container_width=True)
+    st.markdown("""
+    **For Account Creation:**
+    - Contact your department's focal person
+    - Reach out to the CPMS administrator
+    - Provide necessary personal and work information
+    """)
+
 with col2:
-    back_to_login = st.button("Back to Login", use_container_width=True)
+    st.markdown("""
+    **For Technical Support:**
+    - Login issues
+    - Password reset requests
+    - System access problems
+    """)
 
-if submit:
-    # Validation
-    errors = []
-    
-    if not first_name or not last_name or not email or not username or not password:
-        errors.append("All fields are required")
-    
-    if password != confirm_password:
-        errors.append("Passwords do not match")
-    
-    if len(password) < 6:
-        errors.append("Password must be at least 6 characters long")
-    
-    if not agree_terms:
-        errors.append("You must agree to the terms and conditions")
-    
-    # Check if username already exists
-    users = load_users()
-    if username in users:
-        errors.append("Username already exists")
-    
-    # Check if email already exists
-    for user_data in users.values():
-        if user_data.get("email") == email:
-            errors.append("Email already registered")
-            break
-    
-    if errors:
-        for error in errors:
-            st.error(error)
-    else:
-        # Create new user account (pending approval)
-        new_user = {
-            "password": hash_password(password),
-            "role": "encoder",
-            "approved": False,
-            "created_at": time.time(),
-            "first_name": first_name,
-            "last_name": last_name,
-            "email": email,
-            "organization": organization,
-            "position": position,
-            "contact_number": contact_number
-        }
-        
-        users[username] = new_user
-        save_users(users)
-        
-        # Send email notification to admin
-        email_sent = send_registration_notification(new_user)
-        
-        # Show success message
-        st.success("Input saved, thank you!")
-        st.info("Your account is pending approval by the administrator.")
-        st.info("You will be notified via email when your account is approved.")
-        
-        if email_sent:
-            st.success("Email notification sent to administrator.")
-        else:
-            st.warning("Registration successful, but email notification failed.")
-        
-        # Add option to go back to login
-        if st.button("Go Back to Login", use_container_width=True):
-            st.switch_page("main.py")
+st.markdown("---")
 
-if back_to_login:
-    st.switch_page("main.py")
+# Back to login button
+col1, col2, col3 = st.columns([1, 2, 1])
+with col2:
+    if st.button("🔙 Back to Login Page", type="primary", use_container_width=True):
+        st.switch_page("main.py")
+
+st.markdown("""
+<div style='text-align: center; margin-top: 2rem; padding: 1rem; background-color: #f8fafc; border-radius: 8px;'>
+    <p style='color: #6b7280; margin: 0;'>
+        <em>This change improves security and reduces administrative overhead for the CPMS system.</em>
+    </p>
+</div>
+""", unsafe_allow_html=True)
