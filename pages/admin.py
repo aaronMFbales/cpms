@@ -278,6 +278,193 @@ st.markdown("""
         display: none;
     }
     
+    /* Modern Professional Sidebar Design - Matching Dashboard */
+    .stSidebar {
+        background: linear-gradient(180deg, #1e3a8a 0%, #172087 100%) !important;
+        border-right: none !important;
+        box-shadow: 2px 0 10px rgba(0,0,0,0.1) !important;
+    }
+    
+    /* Hide resize handle */
+    .stSidebar .css-1lcbmhc {
+        display: none !important;
+    }
+    
+    .stSidebar .sidebar-content {
+        padding: 0 !important;
+    }
+    
+    /* Make all sidebar text white */
+    .stSidebar * {
+        color: white !important;
+    }
+    
+    /* Sidebar titles and headers */
+    .stSidebar h1, .stSidebar h2, .stSidebar h3, .stSidebar h4, .stSidebar h5, .stSidebar h6 {
+        color: white !important;
+        font-weight: 600 !important;
+    }
+    
+    /* Sidebar text elements */
+    .stSidebar p, .stSidebar div, .stSidebar span, .stSidebar label {
+        color: white !important;
+    }
+    
+    /* Navigation buttons */
+    .stSidebar button {
+        color: white !important;
+        background-color: rgba(255,255,255,0.1) !important;
+        border: 1px solid rgba(255,255,255,0.2) !important;
+        border-radius: 8px !important;
+        width: 100% !important;
+        text-align: left !important;
+        padding: 12px 16px !important;
+        margin: 4px 0 !important;
+        transition: all 0.3s ease !important;
+        font-weight: 500 !important;
+    }
+    
+    /* Navigation button hover */
+    .stSidebar button:hover {
+        background-color: rgba(255,255,255,0.2) !important;
+        color: white !important;
+        transform: translateX(2px) !important;
+        border-left: 3px solid #60a5fa !important;
+    }
+    
+    /* Primary button (selected state) */
+    .stSidebar button[data-baseweb="button"][kind="primary"] {
+        background-color: rgba(255,255,255,0.25) !important;
+        border-left: 3px solid #60a5fa !important;
+        font-weight: 600 !important;
+    }
+    
+    /* Metrics styling */
+    .stSidebar [data-testid="metric-container"] {
+        background: rgba(255,255,255,0.1) !important;
+        border: 1px solid rgba(255,255,255,0.2) !important;
+        border-radius: 8px !important;
+        padding: 8px !important;
+    }
+    
+    .stSidebar [data-testid="metric-container"] * {
+        color: white !important;
+    }
+    
+    /* Dividers */
+    .stSidebar hr {
+        border-color: rgba(255,255,255,0.2) !important;
+        margin: 16px 0 !important;
+    }
+    
+    /* Main content area professional styling */
+    .main .block-container {
+        padding: 2rem 1rem !important;
+        max-width: 100% !important;
+    }
+    
+    /* Professional headers */
+    .admin-header {
+        background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    
+    .admin-header h1 {
+        margin: 0;
+        font-size: 2.5rem;
+        font-weight: 700;
+    }
+    
+    .admin-header p {
+        margin: 0.5rem 0 0 0;
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+    
+    /* Content section styling */
+    .content-section {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        border: 1px solid #e5e7eb;
+    }
+    
+    .content-section h2 {
+        color: #1f2937;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        border-bottom: 2px solid #e5e7eb;
+        padding-bottom: 0.5rem;
+    }
+    
+    .content-section h3 {
+        color: #374151;
+        font-weight: 600;
+        margin: 1.5rem 0 1rem 0;
+    }
+    
+    /* Form styling */
+    .stForm {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin: 1rem 0;
+    }
+    
+    /* Button enhancements */
+    .stButton button {
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+    
+    .stButton button[kind="primary"] {
+        background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+        border: none;
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+    }
+    
+    .stButton button[kind="primary"]:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+    
+    /* Info boxes */
+    .stInfo {
+        border-radius: 8px;
+        border-left: 4px solid #3b82f6;
+    }
+    
+    .stSuccess {
+        border-radius: 8px;
+        border-left: 4px solid #10b981;
+    }
+    
+    .stError {
+        border-radius: 8px;
+        border-left: 4px solid #ef4444;
+    }
+    
+    .stWarning {
+        border-radius: 8px;
+        border-left: 4px solid #f59e0b;
+    }
+    
+    /* Expander styling */
+    .streamlit-expanderHeader {
+        background: #f8fafc;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+    
     /* Ensure our custom navigation is at the top */
     section[data-testid="stSidebar"] > div:first-child {
         padding-top: 1rem;
@@ -307,15 +494,11 @@ if not auth_cookie or auth_cookie.get("role") != "admin":
     st.markdown("[← Go back to login page](../)")
     st.stop()
 
-# Header section
+# Header section with professional styling
 st.markdown("""
-    <div style="background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 100%); padding: 2rem; border-radius: 10px; margin-bottom: 2rem;">
-        <h1 style="color: white; margin: 0; text-align: center; font-size: 2.5rem; font-weight: bold;">
-            MSME CPMS ADMIN DASHBOARD
-        </h1>
-        <p style="color: #bfdbfe; margin: 0.5rem 0 0 0; text-align: center; font-size: 1.1rem;">
-            Client Profile Management System - Administrative Control Panel
-        </p>
+    <div class="admin-header">
+        <h1>MSME CPMS ADMIN DASHBOARD</h1>
+        <p>Client Profile Management System - Administrative Control Panel</p>
     </div>
 """, unsafe_allow_html=True)
 
@@ -338,7 +521,11 @@ except Exception as e:
 
 # Sidebar Navigation
 with st.sidebar:
-    st.markdown("## Navigation")
+    # Simple professional header
+    st.title("CPMS Admin")
+    st.caption("Administrative Control Panel")
+    
+    st.subheader("Navigation")
     
     # Navigation buttons
     admin_tabs = [
@@ -363,7 +550,7 @@ with st.sidebar:
     total_encoders = len([u for u in users.values() if u.get("role") == "encoder"])
     online_count = len([u for u in active_users if u['status'] == 'online'])
     
-    st.markdown("## Quick Stats")
+    st.subheader("System Overview")
     col1, col2 = st.columns(2)
     with col1:
         st.metric("Total Encoders", total_encoders)
@@ -374,9 +561,9 @@ with st.sidebar:
     
     st.divider()
     
-    # Admin Info
+    # Admin Profile
     admin_name = f"{auth_cookie.get('first_name', 'Admin')} {auth_cookie.get('last_name', '')}"
-    st.markdown("## Admin Info")
+    st.subheader("Admin Profile")
     st.write(f"**Name:** {admin_name}")
     st.write(f"**Role:** {auth_cookie.get('role', 'admin').title()}")
     st.write(f"**Status:** Online")
@@ -392,118 +579,177 @@ with st.sidebar:
 
 # Main content area based on selected tab
 if selected_tab == "Create Encoder Account":
+    st.markdown('<div class="content-section">', unsafe_allow_html=True)
     st.markdown("## Create New Encoder Account")
     st.markdown("Create accounts for encoders who will be entering data into the CPMS system.")
     
     with st.form("create_encoder_form"):
         st.markdown("### Personal Information")
+        
+        # Personal info in organized columns
         col1, col2 = st.columns(2)
         
         with col1:
-            first_name = st.text_input("First Name *", help="Encoder's first name")
-            last_name = st.text_input("Last Name *", help="Encoder's last name")
-            email = st.text_input("Email Address *", help="Valid email address for sending credentials")
+            first_name = st.text_input("First Name *", help="Encoder's first name", placeholder="Enter first name")
+            last_name = st.text_input("Last Name *", help="Encoder's last name", placeholder="Enter last name")
+            email = st.text_input("Email Address *", help="Valid email address for sending credentials", placeholder="name@example.com")
             
         with col2:
-            username = st.text_input("Username *", help="Unique username for login")
-            organization = st.text_input("Organization/Department", help="Organization or department")
-            position = st.text_input("Position/Title", help="Job position or title")
+            username = st.text_input("Username *", help="Unique username for login", placeholder="Choose a username")
+            organization = st.text_input("Organization/Department", help="Organization or department", placeholder="Organization name")
+            position = st.text_input("Position/Title", help="Job position or title", placeholder="Job title")
         
-        contact_number = st.text_input("Contact Number", help="Phone number (optional)")
+        contact_number = st.text_input("Contact Number", help="Phone number (optional)", placeholder="+63 XXX XXX XXXX")
         
-        st.markdown("### Password Options")
+        st.markdown("---")
+        st.markdown("### Security Configuration")
         password_option = st.radio(
-            "Choose password method:",
-            ["Generate secure password automatically", "Set custom password"],
-            help="Automatically generated passwords are more secure"
+            "Password Setup Method:",
+            ["Generate secure password automatically (Recommended)", "Set custom password"],
+            help="Automatically generated passwords provide better security"
         )
         
         custom_password = ""
         if password_option == "Set custom password":
-            custom_password = st.text_input("Custom Password", type="password", help="Minimum 8 characters")
-            confirm_password = st.text_input("Confirm Password", type="password")
+            col_pass1, col_pass2 = st.columns(2)
+            with col_pass1:
+                custom_password = st.text_input("Custom Password", type="password", 
+                                              help="Minimum 8 characters", placeholder="Enter password")
+            with col_pass2:
+                confirm_password = st.text_input("Confirm Password", type="password", 
+                                                help="Re-enter the same password", placeholder="Confirm password")
         
-        st.markdown("### Email Notification")
-        send_email = st.checkbox("Send credentials via email", value=True, help="Email the login credentials to the encoder")
+        st.markdown("---")
+        st.markdown("### Notification Settings")
+        send_email = st.checkbox("Send credentials via email", value=True, 
+                                help="Automatically email the login credentials to the encoder")
         
-        submitted = st.form_submit_button("Create Encoder Account", type="primary", use_container_width=True)
+        col_submit1, col_submit2 = st.columns([3, 1])
+        with col_submit2:
+            submitted = st.form_submit_button("Create Account", type="primary", use_container_width=True)
         
         if submitted:
-            # Validation
+            # Enhanced validation with better user feedback
             errors = []
             
-            if not all([first_name, last_name, email, username]):
-                errors.append("All required fields (*) must be filled")
+            # Required field validation
+            if not first_name.strip():
+                errors.append("First name is required")
+            if not last_name.strip():
+                errors.append("Last name is required")
+            if not email.strip():
+                errors.append("Email address is required")
+            if not username.strip():
+                errors.append("Username is required")
             
+            # Email format validation
+            import re
+            if email.strip() and not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
+                errors.append("Please enter a valid email address")
+            
+            # Username validation
+            if username.strip() and (len(username) < 3 or not username.replace('_', '').isalnum()):
+                errors.append("Username must be at least 3 characters and contain only letters, numbers, and underscores")
+            
+            # Password validation for custom passwords
             if password_option == "Set custom password":
                 if len(custom_password) < 8:
-                    errors.append("Custom password must be at least 8 characters")
+                    errors.append("Custom password must be at least 8 characters long")
                 if custom_password != confirm_password:
-                    errors.append("Passwords do not match")
+                    errors.append("Password confirmation does not match")
+                if custom_password and not any(c.isdigit() for c in custom_password):
+                    errors.append("Password should contain at least one number")
             
-            # Check if username or email already exists
+            # Check for existing users
             existing_users = load_users()
-            if username in existing_users:
-                errors.append("Username already exists")
+            if username.strip().lower() in [k.lower() for k in existing_users.keys()]:
+                errors.append("Username already exists - please choose a different username")
             
             for user_data in existing_users.values():
-                if user_data.get("email") == email:
-                    errors.append("Email already registered")
+                if user_data.get("email", "").lower() == email.strip().lower():
+                    errors.append("Email address is already registered with another account")
                     break
             
+            # Display validation errors
             if errors:
+                st.error("Please correct the following issues:")
                 for error in errors:
-                    st.error(error)
+                    st.error(f"• {error}")
             else:
-                # Generate or use custom password
+                # Create the account
                 if password_option == "Generate secure password automatically":
                     password = generate_secure_password()
                 else:
                     password = custom_password
                 
-                # Create new encoder account
+                # Create new encoder account with timestamp
                 new_encoder = {
                     "password": hash_password(password),
                     "role": "encoder",
-                    "approved": True,  # Auto-approved since created by admin
+                    "approved": True,
+                    "active": True,
                     "created_at": time.time(),
                     "created_by": auth_cookie.get("username", "admin"),
-                    "first_name": first_name,
-                    "last_name": last_name,
-                    "email": email,
-                    "organization": organization,
-                    "position": position,
-                    "contact_number": contact_number
+                    "first_name": first_name.strip(),
+                    "last_name": last_name.strip(),
+                    "email": email.strip().lower(),
+                    "organization": organization.strip() if organization else "",
+                    "position": position.strip() if position else "",
+                    "contact_number": contact_number.strip() if contact_number else ""
                 }
                 
-                # Save to users database
-                existing_users[username] = new_encoder
+                # Save to database
+                existing_users[username.strip()] = new_encoder
                 save_users(existing_users)
                 
-                # Success message
-                st.success(f"Encoder account '{username}' created successfully!")
+                # Success display with professional styling
+                st.success("Account Created Successfully!")
                 
-                # Show credentials
-                st.info(f"**Login Credentials:**\n- Username: `{username}`\n- Password: `{password}`")
+                # Credentials display
+                st.info(f"""
+                **New Encoder Account Details:**
+                - **Name:** {first_name} {last_name}
+                - **Username:** `{username}`
+                - **Password:** `{password}`
+                - **Email:** {email}
+                """)
                 
-                # Send email if requested
+                # Email sending
                 if send_email:
                     with st.spinner("Sending credentials via email..."):
                         email_sent = send_account_creation_email(new_encoder, password)
                     
                     if email_sent:
-                        st.success("Credentials sent via email successfully!")
+                        st.success("Login credentials have been sent to the encoder's email address!")
                     else:
-                        st.error("Failed to send email. Please share credentials manually.")
+                        st.warning("Account created successfully, but email delivery failed. Please share credentials manually.")
                 
+                # Next steps information
                 st.markdown("---")
-                st.markdown("**Next Steps:**")
-                st.markdown("1. Account is ready to use immediately")
-                st.markdown("2. Encoder will receive login credentials via email")
-                st.markdown("3. Encoder should change password after first login")
-                st.markdown("4. Encoder can start entering data into CPMS")
+                with st.expander("Next Steps & Instructions", expanded=True):
+                    st.markdown("""
+                    **Account Status:** ✓ Active and ready to use
+                    
+                    **For the Encoder:**
+                    1. Check email for login credentials
+                    2. Log in to the CPMS system using provided username and password
+                    3. Change password after first login (recommended)
+                    4. Begin data entry tasks as assigned
+                    
+                    **For the Administrator:**
+                    - Account is immediately available in 'Manage Encoder Accounts'
+                    - Monitor activity in 'Active Sessions' tab
+                    - Reset password or manage account as needed
+                    """)
+                
+                # Auto-clear form by rerunning
+                if st.button("Create Another Account", type="secondary"):
+                    st.rerun()
+    
+    st.markdown('</div>', unsafe_allow_html=True)
 
 elif selected_tab == "Manage Encoder Accounts":
+    st.markdown('<div class="content-section">', unsafe_allow_html=True)
     st.markdown("## Manage Encoder Accounts")
     st.markdown("View, edit, and manage all encoder accounts in the system.")
     
@@ -598,8 +844,11 @@ elif selected_tab == "Manage Encoder Accounts":
                             if st.button("Cancel", key=f"confirm_no_{username}"):
                                 st.session_state[f"confirm_delete_{username}"] = False
                                 st.rerun()
+    
+    st.markdown('</div>', unsafe_allow_html=True)
 
 elif selected_tab == "Active Sessions":
+    st.markdown('<div class="content-section">', unsafe_allow_html=True)
     st.markdown("## Active Sessions")
     st.markdown("Monitor who is currently using the CPMS system.")
     
@@ -673,8 +922,11 @@ elif selected_tab == "Active Sessions":
                     st.divider()
             else:
                 st.info("No users currently idle.")
+    
+    st.markdown('</div>', unsafe_allow_html=True)
 
 elif selected_tab == "System Settings":
+    st.markdown('<div class="content-section">', unsafe_allow_html=True)
     st.markdown("## System Settings")
     st.markdown("Configure system settings and view administrative information.")
     
@@ -740,3 +992,5 @@ elif selected_tab == "System Settings":
                     st.error(f"Failed to restore user '{selected_user}'")
         else:
             st.info("No deleted users in backup.")
+    
+    st.markdown('</div>', unsafe_allow_html=True)
