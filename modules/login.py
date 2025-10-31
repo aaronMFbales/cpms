@@ -137,18 +137,77 @@ def show():
             password = st.text_input("Password", type="password")
             login = st.form_submit_button("Login", use_container_width=True)
 
-        # Information about account creation
-        st.markdown("---")
+        # Collapsible help section
+        
+        # Initialize session state for help visibility
+        if "show_help" not in st.session_state:
+            st.session_state.show_help = False
+        
+        # Custom CSS for transparent button that looks like a hyperlink
         st.markdown("""
-        <div style='background-color: #f0f9ff; padding: 1rem; border-radius: 8px; border-left: 4px solid #3b82f6;'>
-            <h4 style='color: #1e40af; margin: 0 0 0.5rem 0;'>Need an Account?</h4>
-            <p style='margin: 0; color: #374151;'>
-                Encoder accounts are created by the system administrator. 
-                If you need access to the CPMS system, please contact your administrator 
-                who will create an account for you and provide your login credentials.
-            </p>
-        </div>
+        <style>
+        /* Style the help button to look like a hyperlink */
+        div[data-testid="stButton"] button[kind="secondary"] {
+            background: transparent !important;
+            border: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            color: #6b7280 !important;
+            text-decoration: underline !important;
+            font-size: 0.9rem !important;
+            font-family: inherit !important;
+            cursor: pointer !important;
+            box-shadow: none !important;
+            outline: none !important;
+            min-height: auto !important;
+            height: auto !important;
+        }
+        
+        div[data-testid="stButton"] button[kind="secondary"]:hover {
+            background: transparent !important;
+            color: #374151 !important;
+            border: none !important;
+            box-shadow: none !important;
+            transform: none !important;
+        }
+        
+        div[data-testid="stButton"] button[kind="secondary"]:focus {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            outline: none !important;
+        }
+        
+        div[data-testid="stButton"] button[kind="secondary"]:active {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            transform: none !important;
+        }
+        
+        /* Move the help button to the right */
+        div[data-testid="stButton"]:has(button[kind="secondary"]) {
+            margin-left: 97px !important;
+        }
+        </style>
         """, unsafe_allow_html=True)
+        
+        # Transparent button that looks like a hyperlink
+        if st.button("Need help?", key="help_toggle", type="secondary"):
+            st.session_state.show_help = not st.session_state.show_help
+        
+        # Show help information if toggled on
+        if st.session_state.show_help:
+            st.markdown("""
+            <div style='background-color: #f0f9ff; padding: 1rem; border-radius: 8px; border-left: 4px solid #3b82f6; margin-top: 1rem;'>
+                <h4 style='color: #1e40af; margin: 0 0 0.5rem 0;'>Need an Account?</h4>
+                <p style='margin: 0; color: #374151;'>
+                    Encoder accounts are created by the system administrator. 
+                    If you need access to the CPMS system, please contact your administrator 
+                    who will create an account for you and provide your login credentials.
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
 
         if login:
             # Advanced character cleaning
@@ -229,4 +288,3 @@ def show():
             else:
                 st.error("Username not found")
         
-
