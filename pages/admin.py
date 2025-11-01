@@ -557,7 +557,6 @@ with st.sidebar:
         st.metric("Online Now", online_count)
     with col2:
         st.metric("Admin Sessions", 1)
-        st.metric("System Status", "Active")
     
     st.divider()
     
@@ -579,7 +578,6 @@ with st.sidebar:
 
 # Main content area based on selected tab
 if selected_tab == "Create Encoder Account":
-    st.markdown('<div class="content-section">', unsafe_allow_html=True)
     st.markdown("## Create New Encoder Account")
     st.markdown("Create accounts for encoders who will be entering data into the CPMS system.")
     
@@ -728,7 +726,7 @@ if selected_tab == "Create Encoder Account":
                 st.markdown("---")
                 with st.expander("Next Steps & Instructions", expanded=True):
                     st.markdown("""
-                    **Account Status:** ✓ Active and ready to use
+                    **Account Status:** Active and ready to use
                     
                     **For the Encoder:**
                     1. Check email for login credentials
@@ -745,11 +743,8 @@ if selected_tab == "Create Encoder Account":
                 # Auto-clear form by rerunning
                 if st.button("Create Another Account", type="secondary"):
                     st.rerun()
-    
-    st.markdown('</div>', unsafe_allow_html=True)
 
 elif selected_tab == "Manage Encoder Accounts":
-    st.markdown('<div class="content-section">', unsafe_allow_html=True)
     st.markdown("## Manage Encoder Accounts")
     st.markdown("View, edit, and manage all encoder accounts in the system.")
     
@@ -844,11 +839,8 @@ elif selected_tab == "Manage Encoder Accounts":
                             if st.button("Cancel", key=f"confirm_no_{username}"):
                                 st.session_state[f"confirm_delete_{username}"] = False
                                 st.rerun()
-    
-    st.markdown('</div>', unsafe_allow_html=True)
 
 elif selected_tab == "Active Sessions":
-    st.markdown('<div class="content-section">', unsafe_allow_html=True)
     st.markdown("## Active Sessions")
     st.markdown("Monitor who is currently using the CPMS system.")
     
@@ -895,7 +887,7 @@ elif selected_tab == "Active Sessions":
                 for user in online_users:
                     st.markdown(f"""
                     **{user['full_name']}** (`{user['username']}`)  
-                    Online • {user['role'].title()} • Last activity: {format_time_ago(user['last_activity'])}
+                    Online - {user['role'].title()} - Last activity: {format_time_ago(user['last_activity'])}
                     """)
                     st.divider()
             else:
@@ -906,7 +898,7 @@ elif selected_tab == "Active Sessions":
                 for user in away_users:
                     st.markdown(f"""
                     **{user['full_name']}** (`{user['username']}`)  
-                    Away • {user['role'].title()} • Last activity: {format_time_ago(user['last_activity'])}
+                    Away - {user['role'].title()} - Last activity: {format_time_ago(user['last_activity'])}
                     """)
                     st.divider()
             else:
@@ -917,16 +909,13 @@ elif selected_tab == "Active Sessions":
                 for user in idle_users:
                     st.markdown(f"""
                     **{user['full_name']}** (`{user['username']}`)  
-                    Idle • {user['role'].title()} • Last activity: {format_time_ago(user['last_activity'])}
+                    Idle - {user['role'].title()} - Last activity: {format_time_ago(user['last_activity'])}
                     """)
                     st.divider()
             else:
                 st.info("No users currently idle.")
-    
-    st.markdown('</div>', unsafe_allow_html=True)
 
 elif selected_tab == "System Settings":
-    st.markdown('<div class="content-section">', unsafe_allow_html=True)
     st.markdown("## System Settings")
     st.markdown("Configure system settings and view administrative information.")
     
@@ -954,25 +943,90 @@ elif selected_tab == "System Settings":
     with col2:
         st.markdown("### System Tools")
         
-        if st.button("Reset Admin Account", help="Recreate admin account with current settings"):
-            try:
-                # Remove existing admin and recreate
-                users = load_users()
-                admin_keys_to_remove = [k for k, v in users.items() if v.get("role") == "admin"]
-                for key in admin_keys_to_remove:
-                    del users[key]
-                
-                # Add new admin
-                created, message = create_admin_if_not_exists(users)
-                if created:
-                    save_users(users)
-                    st.success("Admin account reset successfully!")
-                    st.rerun()
-                else:
-                    st.warning("Could not reset admin account")
-            except Exception as e:
-                st.error(f"Error resetting admin account: {str(e)}")
+        # Admin Password Change Section
+        st.markdown("#### Configure Admin Password")
+        st.markdown("Change your admin account password for enhanced security.")
         
+        with st.form("change_admin_password"):
+            current_password = st.text_input("Current Password", type="password", 
+                                           help="Enter your current admin password", 
+                                           placeholder="Enter current password")
+            
+            new_password = st.text_input("New Password", type="password", 
+                                       help="Enter your new password (minimum 8 characters)", 
+                                       placeholder="Enter new password")
+            
+            confirm_password = st.text_input("Confirm New Password", type="password", 
+                                           help="Re-enter your new password", 
+                                           placeholder="Confirm new password")
+            
+            change_password_submitted = st.form_submit_button("Change Password", type="primary")
+            
+            if change_password_submitted:
+                # Validation
+                errors = []
+                
+                # Check if all fields are filled
+                if not current_password:
+                    errors.append("Current password is required")
+                if not new_password:
+                    errors.append("New password is required")
+                if not confirm_password:
+                    errors.append("Password confirmation is required")
+                
+                # Password requirements
+                if new_password and len(new_password) < 8:
+                    errors.append("New password must be at least 8 characters long")
+                
+                if new_password and not any(c.isdigit() for c in new_password):
+                    errors.append("New password should contain at least one number")
+                
+                if new_password and not any(c.isupper() for c in new_password):
+                    errors.append("New password should contain at least one uppercase letter")
+                
+                # Check if new passwords match
+                if new_password != confirm_password:
+                    errors.append("New password and confirmation do not match")
+                
+                # Check if new password is different from current
+                if current_password == new_password:
+                    errors.append("New password must be different from current password")
+                
+                if errors:
+                    st.error("Please correct the following issues:")
+                    for error in errors:
+                        st.error(f"• {error}")
+                else:
+                    # Verify current password
+                    users = load_users()
+                    current_admin_username = auth_cookie.get("username")
+                    
+                    if current_admin_username and current_admin_username in users:
+                        stored_password_hash = users[current_admin_username]["password"]
+                        current_password_hash = hash_password(current_password)
+                        
+                        if stored_password_hash == current_password_hash:
+                            # Update password
+                            users[current_admin_username]["password"] = hash_password(new_password)
+                            users[current_admin_username]["password_changed_at"] = time.time()
+                            users[current_admin_username]["password_changed_by"] = current_admin_username
+                            
+                            # Save changes
+                            save_users(users)
+                            
+                            st.success("Password changed successfully!")
+                            st.info("Please use your new password for future logins.")
+                            
+                            # Update session to prevent logout
+                            auth_cookie["password_changed"] = True
+                            session_manager.save_session(auth_cookie)
+                            
+                        else:
+                            st.error("Current password is incorrect. Please try again.")
+                    else:
+                        st.error("Admin account not found. Please contact system administrator.")
+        
+        st.markdown("---")
         st.markdown("### Deleted Users")
         backup_data = load_deleted_users_backup()
         
@@ -992,5 +1046,3 @@ elif selected_tab == "System Settings":
                     st.error(f"Failed to restore user '{selected_user}'")
         else:
             st.info("No deleted users in backup.")
-    
-    st.markdown('</div>', unsafe_allow_html=True)
