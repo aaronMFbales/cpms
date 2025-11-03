@@ -16,21 +16,28 @@ def hash_password(password):
     """Hash password for security"""
     return hashlib.sha256(password.encode()).hexdigest()
 
-def generate_secure_password(length=12):
+def generate_secure_password(length=6):
     """Generate a secure random password"""
-    characters = string.ascii_letters + string.digits + "!@#$%&*"
+    # Simple character set: uppercase, lowercase, and digits only
+    characters = string.ascii_uppercase + string.ascii_lowercase + string.digits
     password = ''.join(secrets.choice(characters) for _ in range(length))
     return password
 
 def send_account_creation_email(user_data, password):
     """Send email with account credentials to new encoder"""
     try:
-        # Email configuration - using Streamlit secrets
-        sender_email = st.secrets.get("email", {}).get("sender_email", "aaronmfbales@gmail.com")
-        sender_password = st.secrets.get("email", {}).get("sender_password", "")
+        # Email configuration - using Streamlit secrets (support both formats)
+        email_config = st.secrets.get("email", {})
+        sender_email = email_config.get("sender_email") or email_config.get("username") or email_config.get("from", "")
+        sender_password = email_config.get("sender_password") or email_config.get("password", "")
         receiver_email = user_data.get('email', '')
         
         if not receiver_email:
+            st.warning("No email address provided for the user.")
+            return False
+            
+        if not sender_email or not sender_password:
+            st.warning("Email credentials not configured in Streamlit secrets. Please configure email settings to send credentials automatically.")
             return False
         
         # Create message
@@ -40,36 +47,34 @@ def send_account_creation_email(user_data, password):
         msg['Subject'] = "CPMS Account Created - Login Credentials"
         
         # Email body
-        body = f"""
-        Dear {user_data.get('first_name', '')} {user_data.get('last_name', '')},
-        
-        Your CPMS (Client Profile Management System) account has been created by the administrator.
-        
-        Login Credentials:
-        Username: {user_data.get('username', '')}
-        Password: {password}
-        
-        Personal Information:
-        Name: {user_data.get('first_name', '')} {user_data.get('last_name', '')}
-        Email: {user_data.get('email', '')}
-        Organization: {user_data.get('organization', '')}
-        Position: {user_data.get('position', '')}
-        Contact: {user_data.get('contact_number', '')}
-        
-        IMPORTANT SECURITY NOTICE:
-        - Please change your password after your first login
-        - Keep your credentials secure and do not share them
-        - Your account is automatically approved and ready to use
-        
-        You can now log in to the CPMS system using the provided credentials.
-        
-        Best regards,
-        CPMS Administration Team
-        """
+        body = f"""Dear {user_data.get('first_name', '')} {user_data.get('last_name', '')},
+
+Your CPMS (Client Profile Management System) account has been created by the administrator.
+
+Login Credentials:
+Username: {user_data.get('username', '')}
+Password: {password}
+
+Personal Information:
+Name: {user_data.get('first_name', '')} {user_data.get('last_name', '')}
+Email: {user_data.get('email', '')}
+Organization: {user_data.get('organization', '')}
+Position: {user_data.get('position', '')}
+Contact: {user_data.get('contact_number', '')}
+
+IMPORTANT SECURITY NOTICE:
+- Please change your password after your first login
+- Keep your credentials secure and do not share them
+- Your account is automatically approved and ready to use
+
+You can now log in to the CPMS system using the provided credentials.
+
+Best regards,
+CPMS Administration Team"""
         
         msg.attach(MIMEText(body, 'plain'))
         
-        # Create SMTP session
+        # Create SMTP session and send email
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.starttls()
         server.login(sender_email, sender_password)
@@ -80,8 +85,17 @@ def send_account_creation_email(user_data, password):
         server.quit()
         
         return True
+        
+    except smtplib.SMTPAuthenticationError as e:
+        st.warning("Email authentication failed. Please check your Gmail credentials and app password settings.")
+        st.info("To fix this: Go to Google Account settings → Security → App passwords → Generate new app password")
+        return False
+    except (ConnectionRefusedError, OSError) as e:
+        st.warning("Network connection failed. Please check your internet connection and firewall settings.")
+        st.info("This error often occurs when SMTP ports (587/465) are blocked by corporate firewalls.")
+        return False
     except Exception as e:
-        st.error(f"Failed to send account creation email: {str(e)}")
+        st.warning(f"Email delivery failed: {str(e)}")
         return False
 
 def load_users():
@@ -601,21 +615,11 @@ if selected_tab == "Create Encoder Account":
         
         st.markdown("---")
         st.markdown("### Security Configuration")
-        password_option = st.radio(
-            "Password Setup Method:",
-            ["Generate secure password automatically (Recommended)", "Set custom password"],
-            help="Automatically generated passwords provide better security"
-        )
-        
-        custom_password = ""
-        if password_option == "Set custom password":
-            col_pass1, col_pass2 = st.columns(2)
-            with col_pass1:
-                custom_password = st.text_input("Custom Password", type="password", 
-                                              help="Minimum 8 characters", placeholder="Enter password")
-            with col_pass2:
-                confirm_password = st.text_input("Confirm Password", type="password", 
-                                                help="Re-enter the same password", placeholder="Confirm password")
+        st.info("A secure 6-character password will be automatically generated for this account.")
+        st.markdown("**Password will include:**")
+        st.markdown("- Uppercase and lowercase letters")
+        st.markdown("- Numbers")
+        st.markdown("- No special characters for better compatibility")
         
         st.markdown("---")
         st.markdown("### Notification Settings")
@@ -649,15 +653,6 @@ if selected_tab == "Create Encoder Account":
             if username.strip() and (len(username) < 3 or not username.replace('_', '').isalnum()):
                 errors.append("Username must be at least 3 characters and contain only letters, numbers, and underscores")
             
-            # Password validation for custom passwords
-            if password_option == "Set custom password":
-                if len(custom_password) < 8:
-                    errors.append("Custom password must be at least 8 characters long")
-                if custom_password != confirm_password:
-                    errors.append("Password confirmation does not match")
-                if custom_password and not any(c.isdigit() for c in custom_password):
-                    errors.append("Password should contain at least one number")
-            
             # Check for existing users
             existing_users = load_users()
             if username.strip().lower() in [k.lower() for k in existing_users.keys()]:
@@ -674,14 +669,29 @@ if selected_tab == "Create Encoder Account":
                 for error in errors:
                     st.error(f"• {error}")
             else:
-                # Create the account
-                if password_option == "Generate secure password automatically":
-                    password = generate_secure_password()
-                else:
-                    password = custom_password
+                # Generate secure password automatically
+                password = generate_secure_password()
+                st.success(f"**Generated Password: `{password}`**")
+                st.info("This password has been automatically generated and will be sent via email.")
+                
+                # Verify password is set
+                if not password:
+                    st.error("**Critical Error:** Password is empty! Cannot create account.")
+                    st.stop()
+                
+                # Show the password prominently
+                st.markdown("---")
+                st.markdown("### **Account Credentials**")
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.markdown(f"**Username:** `{username}`")
+                with col2:
+                    st.markdown(f"**Password:** `{password}`")
+                st.markdown("---")
                 
                 # Create new encoder account with timestamp
                 new_encoder = {
+                    "username": username.strip(),  # Add username to the data
                     "password": hash_password(password),
                     "role": "encoder",
                     "approved": True,
@@ -701,15 +711,17 @@ if selected_tab == "Create Encoder Account":
                 save_users(existing_users)
                 
                 # Success display with professional styling
-                st.success("Account Created Successfully!")
+                st.success("**Account Created Successfully!**")
                 
                 # Credentials display
+                st.markdown("### **Account Summary**")
                 st.info(f"""
                 **New Encoder Account Details:**
                 - **Name:** {first_name} {last_name}
                 - **Username:** `{username}`
-                - **Password:** `{password}`
                 - **Email:** {email}
+                - **Organization:** {organization if organization else "N/A"}
+                - **Position:** {position if position else "N/A"}
                 """)
                 
                 # Email sending
@@ -721,6 +733,29 @@ if selected_tab == "Create Encoder Account":
                         st.success("Login credentials have been sent to the encoder's email address!")
                     else:
                         st.warning("Account created successfully, but email delivery failed. Please share credentials manually.")
+                        
+                        # Show credentials when email fails
+                        st.info("**Login Credentials (Share these manually):**")
+                        st.code(f"""
+Username: {username}
+Password: {password}
+                        """)
+                        
+                        # Provide troubleshooting guidance
+                        with st.expander("Email Troubleshooting", expanded=False):
+                            st.markdown("""
+                            **Common email delivery issues:**
+                            
+                            1. **Network Connectivity**: Check internet connection and firewall settings
+                            2. **SMTP Configuration**: Verify Gmail SMTP settings in secrets.toml
+                            3. **App Password**: Ensure Gmail app password is correct and active
+                            4. **Corporate Firewall**: Some networks block SMTP ports (587, 465)
+                            
+                            **Manual delivery options:**
+                            - Copy the credentials above and send via secure communication
+                            - Use the organization's internal email system
+                            - Provide credentials through a secure password manager
+                            """)
                 
                 # Next steps information
                 st.markdown("---")
@@ -739,10 +774,10 @@ if selected_tab == "Create Encoder Account":
                     - Monitor activity in 'Active Sessions' tab
                     - Reset password or manage account as needed
                     """)
-                
-                # Auto-clear form by rerunning
-                if st.button("Create Another Account", type="secondary"):
-                    st.rerun()
+    
+    # Create Another Account button (outside the form)
+    if st.button("Create Another Account", type="secondary", key="create_another"):
+        st.rerun()
 
 elif selected_tab == "Manage Encoder Accounts":
     st.markdown("## Manage Encoder Accounts")
@@ -798,23 +833,6 @@ elif selected_tab == "Manage Encoder Accounts":
                 
                 with col3:
                     st.markdown("**Actions**")
-                    
-                    # Reset Password
-                    if st.button("Reset Password", key=f"reset_pwd_{username}"):
-                        new_password = generate_secure_password()
-                        users[username]["password"] = hash_password(new_password)
-                        save_users(users)
-                        
-                        st.success(f"Password reset successfully!")
-                        st.info(f"New password: `{new_password}`")
-                        
-                        # Optionally send email
-                        if st.button("Email New Password", key=f"email_pwd_{username}"):
-                            email_sent = send_account_creation_email(user_data, new_password)
-                            if email_sent:
-                                st.success("Password sent via email!")
-                            else:
-                                st.error("Failed to send email")
                     
                     # Delete Account (with confirmation)
                     if st.button("Delete Account", key=f"delete_{username}", type="secondary"):

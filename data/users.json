@@ -13,14 +13,43 @@
     "approved_at": 1754143564.2700598,
     "approved_by": "admin"
   },
+  "aaronbales": {
+    "password": "a8c5fd77c5e756298f6b78fca83866a7aadb0124cb2cb5292a9aa4c9c6d359de",
+    "role": "encoder",
+    "approved": true,
+    "created_at": 1758784962.566271,
+    "first_name": "Aaron",
+    "last_name": "Bales",
+    "email": "aaronbales98@gmail.com",
+    "organization": "DTI-DCFO",
+    "position": "Intern",
+    "contact_number": "09917171160",
+    "approved_at": 1758785041.9796402,
+    "approved_by": "admin"
+  },
   "admin": {
     "password": "d29046c39c404af4cb120d8243d9cdaa9c306611469b60b5b863836230fa578e",
     "role": "admin",
     "approved": true,
-    "created_at": 1754880906.4873626,
-    "email": "aaronmfbales@gmail.com",
+    "created_at": 1761962792.3778746,
+    "email": "admin@dti.gov.ph",
     "first_name": "DTI",
     "last_name": "Administrator",
     "is_default_admin": true
+  },
+  "eron": {
+    "username": "eron",
+    "password": "1801a11cd08e751b65e9ee451c51561d5e14406a2a3a5142b48c72d3d5f6cbf7",
+    "role": "encoder",
+    "approved": true,
+    "active": true,
+    "created_at": 1762141171.3689625,
+    "created_by": "admin",
+    "first_name": "Aaron",
+    "last_name": "Bales",
+    "email": "aaronmfbales@gmail.com",
+    "organization": "DTI DCFO",
+    "position": "Intern",
+    "contact_number": "09917171660"
   }
 }

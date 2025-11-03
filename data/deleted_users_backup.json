@@ -46,5 +46,22 @@
     "approved_by": "admin",
     "deleted_at": 1758780271.0826368,
     "deleted_by": "admin"
+  },
+  "eron": {
+    "username": "eron",
+    "password": "8d5e11e53928e5b41dbd9833df590a3f371afd152a9fe0588cbb49bcb4e59bdb",
+    "role": "encoder",
+    "approved": true,
+    "active": true,
+    "created_at": 1762136835.0547419,
+    "created_by": "admin",
+    "first_name": "Aaron",
+    "last_name": "Bales",
+    "email": "aaronmfbales@gmail.com",
+    "organization": "DTI DCFO",
+    "position": "Intern",
+    "contact_number": "09917171660",
+    "deleted_at": 1762137452.5443122,
+    "deleted_by": "admin"
   }
 }
