@@ -1239,16 +1239,86 @@ def show():
             if "selected_nav_item" not in st.session_state:
                 st.session_state.selected_nav_item = "Dashboard"
             
-            # Create navigation without categories
+            # Get selected item for highlighting
+            selected = st.session_state.selected_nav_item
+            
+            # Apply admin-style sidebar CSS with gradient indicator
+            st.markdown("""
+                <style>
+                /* Modern Professional Sidebar Design - Matching Admin */
+                .stSidebar {
+                    background: linear-gradient(180deg, #1e3a8a 0%, #172087 100%) !important;
+                    border-right: none !important;
+                    box-shadow: 2px 0 10px rgba(0,0,0,0.1) !important;
+                }
+                
+                /* Make all sidebar text white */
+                .stSidebar * {
+                    color: white !important;
+                }
+                
+                /* Sidebar titles and headers */
+                .stSidebar h1, .stSidebar h2, .stSidebar h3, .stSidebar h4, .stSidebar h5, .stSidebar h6 {
+                    color: white !important;
+                    font-weight: 600 !important;
+                }
+                
+                /* Sidebar text elements */
+                .stSidebar p, .stSidebar div, .stSidebar span, .stSidebar label {
+                    color: white !important;
+                }
+                
+                /* Navigation buttons */
+                .stSidebar button {
+                    color: white !important;
+                    background-color: rgba(255,255,255,0.1) !important;
+                    border: 1px solid rgba(255,255,255,0.2) !important;
+                    border-radius: 8px !important;
+                    width: 100% !important;
+                    text-align: left !important;
+                    padding: 12px 16px !important;
+                    margin: 4px 0 !important;
+                    transition: all 0.3s ease !important;
+                    font-weight: 500 !important;
+                }
+                
+                /* Navigation button hover */
+                .stSidebar button:hover {
+                    background-color: rgba(255,255,255,0.2) !important;
+                    color: white !important;
+                    transform: translateX(2px) !important;
+                    border-left: 3px solid #60a5fa !important;
+                }
+                
+                /* Primary button styling for selected items */
+                .stSidebar button[kind="primary"] {
+                    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #1d4ed8 100%) !important;
+                    border: 1px solid #1e3a8a !important;
+                    color: white !important;
+                    font-weight: 600 !important;
+                    box-shadow: 0 2px 8px rgba(30, 58, 138, 0.3) !important;
+                }
+                
+                /* Dividers */
+                .stSidebar hr {
+                    border-color: rgba(255,255,255,0.2) !important;
+                    margin: 16px 0 !important;
+                }
+                </style>
+            """, unsafe_allow_html=True)
+            
+            # Create navigation with gradient button indicator
             st.subheader("Navigation")
             
             for item in menu_items:
-                # Create navigation buttons
-                if st.button(item, key=f"nav_{item}", use_container_width=True):
-                    st.session_state.selected_nav_item = item
-                    st.rerun()
-            
-            selected = st.session_state.selected_nav_item
+                if selected == item:
+                    # Selected button with gradient (primary button)
+                    st.button(f"{item}", key=f"nav_selected_{item}", type="primary", use_container_width=True, disabled=True)
+                else:
+                    # Regular navigation button
+                    if st.button(f"{item}", key=f"nav_{item}", use_container_width=True):
+                        st.session_state.selected_nav_item = item
+                        st.rerun()
             
             # Data Management Section
             st.subheader("Data Management")
