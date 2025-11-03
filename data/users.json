@@ -1,18 +1,4 @@
 {
-  "tayos": {
-    "password": "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
-    "role": "encoder",
-    "approved": true,
-    "created_at": 1754143382.5076234,
-    "first_name": "tayos",
-    "last_name": "bales",
-    "email": "skymac1614@gmail.com",
-    "organization": "DTI-DCFO",
-    "position": "encoder",
-    "contact_number": "123613412",
-    "approved_at": 1754143564.2700598,
-    "approved_by": "admin"
-  },
   "aaronbales": {
     "password": "a8c5fd77c5e756298f6b78fca83866a7aadb0124cb2cb5292a9aa4c9c6d359de",
     "role": "encoder",
