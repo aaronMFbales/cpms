@@ -373,31 +373,64 @@ st.markdown("""
     
     /* Main content area professional styling */
     .main .block-container {
-        padding: 2rem 1rem !important;
+        padding: 0 1rem 2rem !important;
         max-width: 100% !important;
     }
     
-    /* Professional headers */
+    /* Override the negative margin compensation */
+    .main {
+        padding-top: 20px !important;
+    }
+    
+    /* Professional headers with 3D effect */
     .admin-header {
-        background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+        background: linear-gradient(135deg, #1d3689 0%, #172087 50%, #0f1659 100%);
         color: white;
-        padding: 2rem;
-        border-radius: 12px;
-        margin-bottom: 2rem;
+        padding: 50px 40px;
+        margin: -20px -20px 40px -20px;
+        border-radius: 0 0 20px 20px;
         text-align: center;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        box-shadow: 0 10px 40px rgba(29, 54, 137, 0.4);
+        position: relative;
+        overflow: hidden;
+        min-height: 200px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .admin-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 50%, rgba(255,255,255,0.05) 100%);
+        pointer-events: none;
     }
     
     .admin-header h1 {
         margin: 0;
-        font-size: 2.5rem;
+        font-size: 3em;
         font-weight: 700;
+        text-shadow: 2px 2px 8px rgba(0,0,0,0.4);
+        letter-spacing: 1px;
+        line-height: 1.2;
+        position: relative;
+        z-index: 1;
     }
     
     .admin-header p {
-        margin: 0.5rem 0 0 0;
-        font-size: 1.1rem;
-        opacity: 0.9;
+        margin: 20px 0 0 0;
+        font-size: 1.3em;
+        text-shadow: 1px 1px 4px rgba(0,0,0,0.3);
+        font-weight: 400;
+        letter-spacing: 0.5px;
+        opacity: 0.95;
+        position: relative;
+        z-index: 1;
     }
     
     /* Content section styling */
