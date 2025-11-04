@@ -3,6 +3,9 @@ import numpy as np
 import pandas as pd
 import json
 import os
+import hashlib
+import re
+import unicodedata
 from datetime import datetime
 from utils.philippine_locations import create_location_widgets
 from utils.psic_handler import create_psic_widgets
@@ -244,6 +247,175 @@ def search_for_duplicates():
         st.error(f"Error searching for duplicates: {str(e)}")
         return {}
 
+def load_users():
+    """Load users from JSON file"""
+    users_file = "data/users.json"
+    if os.path.exists(users_file):
+        try:
+            with open(users_file, 'r') as f:
+                return json.load(f)
+        except Exception as e:
+            st.error(f"Error loading users: {e}")
+            return {}
+    return {}
+
+def save_users(users):
+    """Save users to JSON file"""
+    data_dir = "data"
+    if not os.path.exists(data_dir):
+        os.makedirs(data_dir)
+    
+    users_file = os.path.join(data_dir, "users.json")
+    try:
+        with open(users_file, 'w') as f:
+            json.dump(users, f, indent=2)
+        return True
+    except Exception as e:
+        st.error(f"Error saving users: {e}")
+        return False
+
+def clean_input(text):
+    """Clean input text to match login cleaning logic"""
+    if not text:
+        return ""
+    
+    # Unicode normalization
+    text = unicodedata.normalize('NFKC', text)
+    
+    # Remove zero-width and invisible characters
+    invisible_chars = [
+        '\u200B', '\u200C', '\u200D', '\u2060', '\uFEFF', 
+        '\u00AD', '\u034F', '\u180E'
+    ]
+    
+    for char in invisible_chars:
+        text = text.replace(char, '')
+    
+    # Replace all Unicode whitespace with regular space, then strip
+    text = re.sub(r'\s+', ' ', text).strip()
+    
+    # Remove any remaining non-printable characters
+    text = re.sub(r'[^\x20-\x7E]', '', text)
+    
+    # Final cleanup - remove any control characters
+    text = ''.join(char for char in text if ord(char) >= 32 and ord(char) <= 126)
+    
+    return text
+
+def validate_username(username):
+    """Validate username format"""
+    if not username:
+        return False, "Username cannot be empty"
+    
+    if len(username) < 3:
+        return False, "Username must be at least 3 characters long"
+    
+    if len(username) > 30:
+        return False, "Username cannot be longer than 30 characters"
+    
+    # Allow letters, numbers, underscore, and hyphen
+    if not re.match(r'^[a-zA-Z0-9_-]+$', username):
+        return False, "Username can only contain letters, numbers, underscore, and hyphen"
+    
+    return True, "Valid username"
+
+def validate_password(password):
+    """Validate password strength"""
+    if not password:
+        return False, "Password cannot be empty"
+    
+    if len(password) < 6:
+        return False, "Password must be at least 6 characters long"
+    
+    if len(password) > 100:
+        return False, "Password cannot be longer than 100 characters"
+    
+    return True, "Valid password"
+
+def rename_user_data_folder(old_username, new_username):
+    """Rename user's data folder when username changes"""
+    old_folder = f"data/user_{old_username}"
+    new_folder = f"data/user_{new_username}"
+    
+    try:
+        if os.path.exists(old_folder):
+            # Create new folder if it doesn't exist
+            if not os.path.exists(new_folder):
+                os.makedirs(new_folder)
+            
+            # Move all files from old folder to new folder
+            import shutil
+            for filename in os.listdir(old_folder):
+                old_file = os.path.join(old_folder, filename)
+                new_file = os.path.join(new_folder, filename)
+                shutil.move(old_file, new_file)
+            
+            # Remove old folder
+            os.rmdir(old_folder)
+            return True
+    except Exception as e:
+        st.error(f"Error renaming user data folder: {e}")
+        return False
+    
+    return True
+
+def update_user_credentials(current_username, new_username, new_password):
+    """Update user credentials in the system"""
+    try:
+        # Load current users
+        users = load_users()
+        
+        if current_username not in users:
+            return False, "Current user not found"
+        
+        # Get current user data
+        user_data = users[current_username].copy()
+        
+        # Clean inputs
+        new_username = clean_input(new_username)
+        new_password = clean_input(new_password)
+        
+        # Validate new username
+        is_valid_username, username_msg = validate_username(new_username)
+        if not is_valid_username:
+            return False, username_msg
+        
+        # Check if new username already exists (and it's different from current)
+        if new_username != current_username and new_username in users:
+            return False, "Username already exists"
+        
+        # Validate new password
+        is_valid_password, password_msg = validate_password(new_password)
+        if not is_valid_password:
+            return False, password_msg
+        
+        # Hash the new password
+        hashed_password = hashlib.sha256(new_password.encode()).hexdigest()
+        
+        # Update user data
+        user_data["password"] = hashed_password
+        
+        # If username changed, update the users dict and rename data folder
+        if new_username != current_username:
+            # Remove old username entry
+            del users[current_username]
+            
+            # Rename user data folder
+            if not rename_user_data_folder(current_username, new_username):
+                return False, "Failed to update user data folder"
+        
+        # Add user with new username (or update existing)
+        users[new_username] = user_data
+        
+        # Save users
+        if not save_users(users):
+            return False, "Failed to save user data"
+        
+        return True, "Account updated successfully"
+        
+    except Exception as e:
+        return False, f"Error updating credentials: {str(e)}"
+
 def create_user_excel_download():
     """Create Excel file for current user's data"""
     try:
@@ -458,6 +630,9 @@ def show():
         # Handle navigation from search results before any widgets are created
         if 'navigate_to' in st.session_state:
             st.session_state.selected_nav_item = st.session_state.navigate_to
+            # Close Account Management if it's open
+            if st.session_state.get("show_account_management", False):
+                st.session_state.show_account_management = False
             # Set flag to hide search results after navigation
             st.session_state.hide_search_results = True
             # Store the current search query that triggered this navigation
@@ -1318,6 +1493,9 @@ def show():
                     # Regular navigation button
                     if st.button(f"{item}", key=f"nav_{item}", use_container_width=True):
                         st.session_state.selected_nav_item = item
+                        # Close Account Management if it's open
+                        if st.session_state.get("show_account_management", False):
+                            st.session_state.show_account_management = False
                         st.rerun()
             
             # Data Management Section
@@ -1418,6 +1596,11 @@ def show():
                 st.session_state.show_duplicate_search = True
                 st.rerun()
             
+            # Account Management button
+            if st.button("Account Management", key="account_mgmt_btn", type="secondary", use_container_width=True):
+                st.session_state.show_account_management = True
+                st.rerun()
+            
             # Logout button - at the bottom
             if st.button("Logout", key="logout_btn", type="primary", use_container_width=True):
                 st.session_state["authenticated"] = False
@@ -1510,7 +1693,159 @@ def show():
             """, unsafe_allow_html=True)
 
         
-        if selected == "Dashboard":
+        # Check if Account Management is active first
+        if st.session_state.get("show_account_management", False):
+            # Account Management Page - Clean design without emojis
+            st.markdown(f"""
+                <div style="background: linear-gradient(135deg, #2563eb 0%, #172087 50%, #0f1659 100%); 
+                            padding: 40px 30px; margin: -20px -20px 30px -20px; border-radius: 0 0 15px 15px;
+                            box-shadow: 0 8px 32px rgba(23, 32, 135, 0.3);
+                            text-align: center;">
+                    <h1 style="color: white; margin: 0; font-size: 2.5em; font-weight: 600;
+                              text-shadow: 2px 2px 6px rgba(0,0,0,0.3);">
+                        Account Management
+                    </h1>
+                    <p style="color: rgba(255,255,255,0.9); margin: 15px 0 0 0; font-size: 1.1em;
+                              text-shadow: 1px 1px 3px rgba(0,0,0,0.2);">
+                        Manage your username and password for security
+                    </p>
+                </div>
+            """, unsafe_allow_html=True)
+            
+            # Get current user info
+            auth_cookie = st.session_state.get("auth_cookie", {})
+            current_username = auth_cookie.get("username", "")
+            first_name = auth_cookie.get("first_name", "")
+            last_name = auth_cookie.get("last_name", "")
+            full_name = f"{first_name} {last_name}".strip()
+            
+            # Current Account Information
+            st.markdown("### Current Account Information")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                st.info(f"**Username:** {current_username}")
+            with col2:
+                st.info(f"**Name:** {full_name if full_name else 'Not set'}")
+            
+            st.markdown("---")
+            
+            # Account Update Form
+            st.markdown("### Update Account Credentials")
+            st.warning("**Important:** Changing your credentials will affect future logins. Make sure to remember your new username and password!")
+            
+            with st.form("account_update_form"):
+                st.markdown("#### Change Username")
+                new_username = st.text_input(
+                    "New Username", 
+                    value=current_username,
+                    placeholder="Enter new username (3-30 characters)",
+                    help="Username must be 3-30 characters long and contain only letters, numbers, underscore, and hyphen"
+                )
+                
+                st.markdown("#### Change Password")
+                new_password = st.text_input(
+                    "New Password", 
+                    type="password",
+                    placeholder="Enter new password (minimum 6 characters)",
+                    help="Password must be at least 6 characters long for security"
+                )
+                
+                confirm_password = st.text_input(
+                    "Confirm New Password", 
+                    type="password",
+                    placeholder="Re-enter your new password",
+                    help="Please confirm your new password"
+                )
+                
+                # Form submission buttons
+                col1, col2, col3 = st.columns([1, 1, 1])
+                
+                with col1:
+                    if st.form_submit_button("Cancel", type="secondary", use_container_width=True):
+                        st.session_state.show_account_management = False
+                        st.rerun()
+                
+                with col3:
+                    submit_update = st.form_submit_button("Update Account", type="primary", use_container_width=True)
+            
+            # Handle form submission
+            if submit_update:
+                # Validate inputs
+                if not new_username or not new_password:
+                    st.error("Please fill in all fields")
+                elif new_password != confirm_password:
+                    st.error("Passwords do not match")
+                elif new_username == current_username and new_password:
+                    # Only password change
+                    success, message = update_user_credentials(current_username, new_username, new_password)
+                    if success:
+                        st.success("Password updated successfully!")
+                        st.info("Your password has been changed. Please use your new password for future logins.")
+                        st.session_state.show_account_management = False
+                        import time
+                        time.sleep(2)
+                        st.rerun()
+                    else:
+                        st.error(f"{message}")
+                elif new_username != current_username:
+                    # Username and/or password change
+                    success, message = update_user_credentials(current_username, new_username, new_password)
+                    if success:
+                        st.success("Account updated successfully!")
+                        
+                        # Update session with new username
+                        auth_cookie["username"] = new_username
+                        st.session_state["auth_cookie"] = auth_cookie
+                        # Update secure session as well
+                        session_manager.save_session(auth_cookie)
+                        
+                        st.success(f"Username changed from '{current_username}' to '{new_username}'")
+                        st.success("Password updated successfully!")
+                        st.info("Your account has been updated. Please use your new credentials for future logins.")
+                        st.session_state.show_account_management = False
+                        
+                        # Give user time to see the success message
+                        import time
+                        time.sleep(3)
+                        st.rerun()
+                    else:
+                        st.error(f"{message}")
+            
+            # Security Tips
+            st.markdown("---")
+            st.markdown("### Security Tips")
+            
+            with st.expander("Click to view security recommendations"):
+                st.markdown("""
+                **Strong Password Guidelines:**
+                - Use at least 6 characters (longer is better)
+                - Mix uppercase and lowercase letters
+                - Include numbers and special characters
+                - Avoid using personal information
+                - Don't reuse passwords from other accounts
+                
+                **Username Guidelines:**
+                - Choose something you'll remember
+                - 3-30 characters only
+                - Letters, numbers, underscore (_), and hyphen (-) allowed
+                - Make it unique but professional
+                
+                **After Changing Credentials:**
+                - Log out and log back in to test
+                - Make sure you can access all your data
+                - Write down your credentials in a safe place
+                """)
+            
+            st.markdown("---")
+            st.markdown("*Your data security is important. All passwords are encrypted and stored securely.*")
+            
+            # Close button at the bottom
+            if st.button("Close Account Management", key="close_account_mgmt", type="secondary", use_container_width=True):
+                st.session_state.show_account_management = False
+                st.rerun()
+        
+        elif selected == "Dashboard":
             # Professional Analytics Dashboard - Data-driven insights
             
             # Load all data for analytics
