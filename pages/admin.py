@@ -808,9 +808,9 @@ Password: {password}
                     - Reset password or manage account as needed
                     """)
     
-    # Create Another Account button (outside the form)
-    if st.button("Create Another Account", type="secondary", key="create_another"):
-        st.rerun()
+    # Helpful note for creating additional accounts
+    st.markdown("---")
+    st.info("**Need to create another account?** Simply refresh this page (F5 or Ctrl+R) to clear the form and start fresh!")
 
 elif selected_tab == "Manage Encoder Accounts":
     st.markdown("## Manage Encoder Accounts")
