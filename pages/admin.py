@@ -329,13 +329,14 @@ st.markdown("""
         color: white !important;
         background-color: rgba(255,255,255,0.1) !important;
         border: 1px solid rgba(255,255,255,0.2) !important;
-        border-radius: 8px !important;
+        border-radius: 6px !important;
         width: 100% !important;
         text-align: left !important;
-        padding: 12px 16px !important;
-        margin: 4px 0 !important;
+        padding: 1px 1px !important;
+        margin: 3px 0 !important;
         transition: all 0.3s ease !important;
         font-weight: 500 !important;
+        font-size: 0.9em !important;
     }
     
     /* Navigation button hover */
@@ -373,27 +374,34 @@ st.markdown("""
     
     /* Main content area professional styling */
     .main .block-container {
-        padding: 0 1rem 2rem !important;
+        padding: 0 1rem 1rem !important;
         max-width: 100% !important;
     }
     
     /* Override the negative margin compensation */
     .main {
-        padding-top: 20px !important;
+        padding-top: 10px !important;
     }
     
-    /* Professional headers with 3D effect */
+    /* Professional headers with enhanced gradient */
     .admin-header {
-        background: linear-gradient(135deg, #1d3689 0%, #172087 50%, #0f1659 100%);
+        background: linear-gradient(to right, 
+            #0f1659 0%, 
+            #172087 35%, 
+            #1e3a8a 60%, 
+            #1d4ed8 90%, 
+            #3b82f6 120%);
         color: white;
-        padding: 50px 40px;
-        margin: -20px -20px 40px -20px;
-        border-radius: 0 0 20px 20px;
+        padding: 30px 40px 25px 40px;
+        margin: -20px -20px 20px -20px;
+        border-radius: 0 0 15px 15px;
         text-align: center;
-        box-shadow: 0 10px 40px rgba(29, 54, 137, 0.4);
+        box-shadow: 0 8px 32px rgba(59, 130, 246, 0.4), 
+                    0 4px 16px rgba(29, 78, 216, 0.3),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.1);
         position: relative;
         overflow: hidden;
-        min-height: 200px;
+        min-height: 120px;
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -407,27 +415,34 @@ st.markdown("""
         left: 0;
         right: 0;
         bottom: 0;
-        background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 50%, rgba(255,255,255,0.05) 100%);
+        background: linear-gradient(45deg, 
+            rgba(255,255,255,0.15) 0%, 
+            transparent 30%, 
+            rgba(59, 130, 246, 0.1) 50%,
+            transparent 70%, 
+            rgba(255,255,255,0.08) 100%);
         pointer-events: none;
     }
     
     .admin-header h1 {
         margin: 0;
-        font-size: 3em;
+        font-size: 2.2em;
         font-weight: 700;
-        text-shadow: 2px 2px 8px rgba(0,0,0,0.4);
-        letter-spacing: 1px;
-        line-height: 1.2;
+        text-shadow: 2px 2px 8px rgba(0,0,0,0.5), 
+                     0 0 20px rgba(59, 130, 246, 0.3);
+        letter-spacing: 0.5px;
+        line-height: 1.1;
         position: relative;
         z-index: 1;
     }
     
     .admin-header p {
-        margin: 20px 0 0 0;
-        font-size: 1.3em;
-        text-shadow: 1px 1px 4px rgba(0,0,0,0.3);
+        margin: 10px 0 0 0;
+        font-size: 1.1em;
+        text-shadow: 1px 1px 4px rgba(0,0,0,0.4), 
+                     0 0 15px rgba(59, 130, 246, 0.2);
         font-weight: 400;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.3px;
         opacity: 0.95;
         position: relative;
         z-index: 1;
@@ -514,7 +529,7 @@ st.markdown("""
     
     /* Ensure our custom navigation is at the top */
     section[data-testid="stSidebar"] > div:first-child {
-        padding-top: 1rem;
+        padding-top: 0.5rem;
     }
 </style>
 """, unsafe_allow_html=True)
