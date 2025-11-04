@@ -359,6 +359,24 @@ def rename_user_data_folder(old_username, new_username):
     
     return True
 
+def verify_current_password(username, password):
+    """Verify if the provided password matches the user's current password"""
+    try:
+        users = load_users()
+        
+        if username not in users:
+            return False
+        
+        # Hash the provided password
+        hashed_password = hashlib.sha256(password.encode()).hexdigest()
+        
+        # Compare with stored password
+        return users[username].get("password") == hashed_password
+        
+    except Exception as e:
+        st.error(f"Error verifying password: {e}")
+        return False
+
 def update_user_credentials(current_username, new_username, new_password):
     """Update user credentials in the system"""
     try:
@@ -1698,11 +1716,11 @@ def show():
             # Account Management Page - Clean design without emojis
             st.markdown(f"""
                 <div style="background: linear-gradient(135deg, #2563eb 0%, #172087 50%, #0f1659 100%); 
-                            padding: 40px 30px; margin: -20px -20px 30px -20px; border-radius: 0 0 15px 15px;
+                            padding: 60px 30px 40px 30px; margin: -20px -20px 30px -20px; border-radius: 0 0 15px 15px;
                             box-shadow: 0 8px 32px rgba(23, 32, 135, 0.3);
                             text-align: center;">
                     <h1 style="color: white; margin: 0; font-size: 2.5em; font-weight: 600;
-                              text-shadow: 2px 2px 6px rgba(0,0,0,0.3);">
+                              text-shadow: 2px 2px 6px rgba(0,0,0,0.3); padding-top: 30px !important; margin-top: 20px !important;">
                         Account Management
                     </h1>
                     <p style="color: rgba(255,255,255,0.9); margin: 15px 0 0 0; font-size: 1.1em;
@@ -1724,17 +1742,37 @@ def show():
             
             col1, col2 = st.columns(2)
             with col1:
-                st.info(f"**Username:** {current_username}")
+                st.markdown(f"""
+                    <div style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 20px 15px; border-radius: 8px; margin: 10px 0;">
+                        <div style="margin-top: 5px;">
+                            <strong>Username:</strong> {current_username}
+                        </div>
+                    </div>
+                """, unsafe_allow_html=True)
             with col2:
-                st.info(f"**Name:** {full_name if full_name else 'Not set'}")
+                st.markdown(f"""
+                    <div style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 20px 15px; border-radius: 8px; margin: 10px 0;">
+                        <div style="margin-top: 5px;">
+                            <strong>Name:</strong> {full_name if full_name else 'Not set'}
+                        </div>
+                    </div>
+                """, unsafe_allow_html=True)
             
             st.markdown("---")
             
             # Account Update Form
             st.markdown("### Update Account Credentials")
-            st.warning("**Important:** Changing your credentials will affect future logins. Make sure to remember your new username and password!")
+            
+            # Create a container with padding for the form
+            st.markdown("""
+                <div style="background: #ffffff; padding: 25px 20px; border-radius: 10px; 
+                           border: 1px solid #e5e7eb; margin: 20px 0;">
+            """, unsafe_allow_html=True)
+            
+            st.warning("**Important:** You must enter your current password to verify your identity before making any changes. Changing your credentials will affect future logins. Make sure to remember your new username and password!")
             
             with st.form("account_update_form"):
+                st.markdown("<div style='padding-top: 15px;'></div>", unsafe_allow_html=True)
                 st.markdown("#### Change Username")
                 new_username = st.text_input(
                     "New Username", 
@@ -1743,7 +1781,17 @@ def show():
                     help="Username must be 3-30 characters long and contain only letters, numbers, underscore, and hyphen"
                 )
                 
+                st.markdown("<div style='padding-top: 20px;'></div>", unsafe_allow_html=True)
                 st.markdown("#### Change Password")
+                
+                # Current password field for security
+                current_password = st.text_input(
+                    "Current Password", 
+                    type="password",
+                    placeholder="Enter your current password",
+                    help="Please enter your current password to verify your identity before changing to a new password"
+                )
+                
                 new_password = st.text_input(
                     "New Password", 
                     type="password",
@@ -1772,10 +1820,18 @@ def show():
             # Handle form submission
             if submit_update:
                 # Validate inputs
-                if not new_username or not new_password:
-                    st.error("Please fill in all fields")
+                if not new_username:
+                    st.error("Please enter a username")
+                elif not current_password:
+                    st.error("Please enter your current password to verify your identity")
+                elif not new_password:
+                    st.error("Please enter a new password")
                 elif new_password != confirm_password:
-                    st.error("Passwords do not match")
+                    st.error("New passwords do not match")
+                elif not verify_current_password(current_username, current_password):
+                    st.error("Current password is incorrect. Please enter your correct current password.")
+                elif current_password == new_password:
+                    st.error("New password must be different from your current password")
                 elif new_username == current_username and new_password:
                     # Only password change
                     success, message = update_user_credentials(current_username, new_username, new_password)
@@ -1812,12 +1868,27 @@ def show():
                     else:
                         st.error(f"{message}")
             
+            # Close the form container
+            st.markdown("</div>", unsafe_allow_html=True)
+            
             # Security Tips
             st.markdown("---")
             st.markdown("### Security Tips")
             
+            # Security tips container with padding
+            st.markdown("""
+                <div style="background: #f8f9fa; padding: 20px 20px; border-radius: 10px; 
+                           border: 1px solid #e9ecef; margin: 15px 0;">
+            """, unsafe_allow_html=True)
+            
             with st.expander("Click to view security recommendations"):
+                st.markdown("<div style='padding-top: 10px;'></div>", unsafe_allow_html=True)
                 st.markdown("""
+                **Security Requirements:**
+                - You must enter your current password to make any changes
+                - This protects your account from unauthorized modifications
+                - New password must be different from your current password
+                
                 **Strong Password Guidelines:**
                 - Use at least 6 characters (longer is better)
                 - Mix uppercase and lowercase letters
@@ -1837,8 +1908,10 @@ def show():
                 - Write down your credentials in a safe place
                 """)
             
-            st.markdown("---")
             st.markdown("*Your data security is important. All passwords are encrypted and stored securely.*")
+            
+            # Close the security tips container
+            st.markdown("</div>", unsafe_allow_html=True)
             
             # Close button at the bottom
             if st.button("Close Account Management", key="close_account_mgmt", type="secondary", use_container_width=True):
@@ -2382,11 +2455,11 @@ def show():
                     progress = min(target["current"] / target["target"], 1.0) if target["target"] > 0 else 0
                     progress_percent = int(progress * 100)
                     
-                    st.markdown("<div style='padding-top:40px'></div>", unsafe_allow_html=True)
+                    st.markdown("<div style='padding-top:20px'></div>", unsafe_allow_html=True)
                     st.markdown(f"""
-                        <div style="background: #f8fafc; padding: 20px; border-radius: 10px; 
-                                margin-bottom: 15px; border-left: 3px solid #172087; margin-top: 15px; padding-top: 25px;">
-                            <div style="margin-bottom: 10px;">
+                        <div style="background: #f8fafc; padding: 25px 20px; border-radius: 10px; 
+                                margin-bottom: 15px; border-left: 3px solid #172087; margin-top: 15px;">
+                            <div style="margin-bottom: 15px; padding-top: 5px;">
                                 <h5 style="color: #374151; margin: 0; font-size: 1em; font-weight: 600;">
                                     {target['name']}
                                 </h5>
@@ -2415,9 +2488,9 @@ def show():
             st.markdown("<div style='margin: 40px 0;'></div>", unsafe_allow_html=True)
             st.markdown(f"""
                 <div style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); 
-                        padding: 25px; border-radius: 12px; text-align: center; 
+                        padding: 30px 25px; border-radius: 12px; text-align: center; 
                         border: 1px solid #e2e8f0;">
-                    <div style="color: #6b7280; font-size: 0.95em; margin-bottom: 8px; padding-top: 15px;">
+                    <div style="color: #6b7280; font-size: 0.95em; margin-bottom: 8px; padding-top: 10px;">
                         <strong>CPMS Analytics Dashboard</strong> | Automated data processing and real-time insights
                     </div>
                     <div style="color: #9ca3af; font-size: 0.85em;">
