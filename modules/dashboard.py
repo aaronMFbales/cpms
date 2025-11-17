@@ -579,24 +579,37 @@ def get_excel_sheets():
         return []
 
 def perform_global_search(search_term):
-        """Search across all sheets for the given term"""
+        """Search across all sheets for the given term in current user's data"""
         results = []
-        data_dir = "data"
-        excel_file = os.path.join(data_dir, "cpms_data.xlsx")
         
-        if not os.path.exists(excel_file):
-            return results
+        # Get current user from session
+        auth_cookie = st.session_state.get("auth_cookie", {})
+        username = auth_cookie.get("username", "anonymous")
+        
+        # Define all searchable sheets
+        searchable_sheets = [
+            "Client", "Business Contact Information", "Business Registrations", 
+            "Business Owner", "Business Profile", "Business Financial Structure",
+            "Market Domestic", "Market Export", "Market Import",
+            "Product Service Lines", "Employment Statistics", 
+            "Assistance", "Jobs Generated"
+        ]
         
         try:
-            # Read all sheets
-            excel_data = pd.read_excel(excel_file, sheet_name=None)
-            
             # Search through each sheet
-            for sheet_name, df in excel_data.items():
-                if sheet_name == 'Sheet1':  # Skip default sheet
+            for sheet_name in searchable_sheets:
+                # Load user-specific data for this sheet
+                data, columns = data_manager.load_user_data(username, sheet_name)
+                
+                if not data or not columns:
                     continue
-                    
-                # Convert DataFrame to string for searching (but preserve original data)
+                
+                # Convert to DataFrame for easier searching
+                df = pd.DataFrame(data, columns=columns)
+                if df.empty:
+                    continue
+                
+                # Convert DataFrame to string for searching
                 df_search = df.astype(str)
                 
                 # Search each row
@@ -611,12 +624,12 @@ def perform_global_search(search_term):
                             match_values.append(str(cell_value))
                     
                     if matches:
-                        # Get the original row data (not the string-converted version)
+                        # Get the original row data
                         original_row = df.iloc[index]
                         
                         # Create a better match description
                         match_preview = []
-                        for i, (col, val) in enumerate(zip(matches[:3], match_values[:3])):  # Show up to 3 matches
+                        for i, (col, val) in enumerate(zip(matches[:3], match_values[:3])):
                             preview = val[:50] + '...' if len(val) > 50 else val
                             match_preview.append(f"{col}: '{preview}'")
                         
@@ -627,14 +640,14 @@ def perform_global_search(search_term):
                         # Create result entry with original data
                         result = {
                             'sheet': sheet_name,
-                            'data': dict(original_row),  # Use original row data
+                            'data': dict(original_row),
                             'match_info': match_info,
                             'match_count': len(matches)
                         }
                         results.append(result)
         
         except Exception as e:
-            st.error(f"Error during search: {e}")
+            st.error(f"Error during search: {str(e)}")
         
         # Sort results by relevance (number of matches, then by sheet name)
         results.sort(key=lambda x: (-x['match_count'], x['sheet']))
@@ -1685,30 +1698,134 @@ def show():
         # Add main content wrapper
         st.markdown('<div class="main-content">', unsafe_allow_html=True)
         
-        # Header with search functionality
-        header_col1, header_col2 = st.columns([2, 1])
+        # Header with smart search functionality
+        header_col1, header_col2 = st.columns([3, 2])
         
         with header_col1:
             st.markdown(f"<h3 style='font-weight: 600; color: #172087;'>{st.session_state.selected_sheet}</h3>", unsafe_allow_html=True)
         
         with header_col2:
-            # Get user's first name for welcome message
-            auth_cookie = st.session_state.get("auth_cookie", {})
-            user_first_name = auth_cookie.get("first_name", "User")
-            
-            # Welcome message in top right with DTI blue theme
-            st.markdown(f"""
-                <h4 style="
+            # Smart Search Feature - Professional design
+            st.markdown("""
+                <style>
+                .search-container {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    margin-top: -10px;
+                }
+                .search-label {
                     color: #172087;
-                    font-size: 30px;
                     font-weight: 600;
-                    margin-bottom: 15px;
-                    margin-top: 0;
-                    text-align: right;
-                ">
-                    Welcome, {user_first_name}!
-                </h4>
+                    font-size: 14px;
+                    white-space: nowrap;
+                }
+                </style>
             """, unsafe_allow_html=True)
+            
+            # Initialize search state
+            if 'smart_search_query' not in st.session_state:
+                st.session_state.smart_search_query = ""
+            if 'smart_search_results' not in st.session_state:
+                st.session_state.smart_search_results = None
+            
+            # Search input with professional styling
+            search_col1, search_col2 = st.columns([4, 1])
+            with search_col1:
+                search_query = st.text_input(
+                    "Search",
+                    value=st.session_state.smart_search_query,
+                    placeholder="Search across all sheets...",
+                    key="smart_search_input",
+                    label_visibility="collapsed"
+                )
+            with search_col2:
+                search_button = st.button("Search", key="smart_search_btn", type="primary", use_container_width=True)
+            
+            # Perform search when button is clicked or Enter is pressed
+            if search_button and search_query.strip():
+                st.session_state.smart_search_query = search_query
+                st.session_state.smart_search_results = perform_global_search(search_query.strip())
+            elif not search_query.strip() and st.session_state.smart_search_query:
+                # Clear search results if search box is cleared
+                st.session_state.smart_search_query = ""
+                st.session_state.smart_search_results = None
+
+        # Display search results if available
+        if st.session_state.smart_search_results is not None:
+            st.markdown("---")
+            
+            results = st.session_state.smart_search_results
+            
+            if len(results) > 0:
+                st.markdown(f"""
+                    <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); 
+                                padding: 20px 30px; border-radius: 10px; margin: 20px 0;
+                                box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);">
+                        <h3 style="color: white; margin: 0; font-weight: 600;">
+                            Search Results: {len(results)} record(s) found for "{st.session_state.smart_search_query}"
+                        </h3>
+                    </div>
+                """, unsafe_allow_html=True)
+                
+                # Display results in a clean, organized manner
+                for idx, result in enumerate(results, 1):
+                    with st.expander(f"Result {idx}: {result['sheet']} - {result['match_info']}", expanded=False):
+                        st.markdown(f"**Sheet:** {result['sheet']}")
+                        st.markdown(f"**Match Details:** {result['match_info']}")
+                        
+                        # Display the matching record data
+                        st.markdown("**Record Data:**")
+                        
+                        # Create a clean display of the data
+                        data_items = []
+                        for key, value in result['data'].items():
+                            if pd.notna(value) and str(value).strip() != '':
+                                data_items.append(f"**{key}:** {value}")
+                        
+                        # Display in columns for better readability
+                        if data_items:
+                            cols_per_row = 2
+                            for i in range(0, len(data_items), cols_per_row):
+                                cols = st.columns(cols_per_row)
+                                for j, col in enumerate(cols):
+                                    if i + j < len(data_items):
+                                        col.markdown(data_items[i + j])
+                        
+                        # Add navigation button to go to the specific sheet
+                        if st.button(f"Go to {result['sheet']}", key=f"goto_sheet_{idx}_{result['sheet']}", type="secondary"):
+                            st.session_state.selected_nav_item = result['sheet']
+                            # Clear search results after navigation
+                            st.session_state.smart_search_results = None
+                            st.session_state.smart_search_query = ""
+                            st.rerun()
+                
+                # Clear results button
+                if st.button("Clear Search Results", key="clear_smart_search", type="secondary"):
+                    st.session_state.smart_search_results = None
+                    st.session_state.smart_search_query = ""
+                    st.rerun()
+                    
+            else:
+                st.markdown(f"""
+                    <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); 
+                                padding: 20px 30px; border-radius: 10px; margin: 20px 0;
+                                box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);">
+                        <h3 style="color: white; margin: 0; font-weight: 600;">
+                            No results found for "{st.session_state.smart_search_query}"
+                        </h3>
+                        <p style="color: white; margin: 10px 0 0 0;">
+                            Try different keywords or check your spelling.
+                        </p>
+                    </div>
+                """, unsafe_allow_html=True)
+                
+                if st.button("Clear Search", key="clear_empty_search", type="secondary"):
+                    st.session_state.smart_search_results = None
+                    st.session_state.smart_search_query = ""
+                    st.rerun()
+            
+            st.markdown("---")
 
         
         # Check if Account Management is active first
