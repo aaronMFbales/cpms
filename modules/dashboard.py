@@ -28,6 +28,73 @@ st.markdown("""
     vertical-align: middle !important;
     box-sizing: border-box !important;
 }
+
+/* Add proper padding to ALL text input fields for professional appearance */
+.stTextInput > div > div > input,
+.stTextInput input,
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="tel"],
+input[type="url"] {
+    padding: 12px 12px 12px 12px !important;
+    height: auto !important;
+    min-height: 42px !important;
+    line-height: 1.5 !important;
+    box-sizing: border-box !important;
+}
+
+/* Add proper padding to text area fields */
+.stTextArea > div > div > textarea,
+.stTextArea textarea,
+textarea {
+    padding: 12px 12px 12px 12px !important;
+    line-height: 1.5 !important;
+    box-sizing: border-box !important;
+}
+
+/* Add proper padding to selectbox fields */
+.stSelectbox > div > div > select,
+.stSelectbox select,
+select {
+    padding: 10px 12px 10px 12px !important;
+    height: auto !important;
+    min-height: 42px !important;
+    line-height: 1.5 !important;
+    box-sizing: border-box !important;
+}
+
+/* Add proper padding to number input fields */
+.stNumberInput > div > div > input,
+.stNumberInput input,
+input[type="number"] {
+    padding: 12px 12px 12px 12px !important;
+    height: auto !important;
+    min-height: 42px !important;
+    line-height: 1.5 !important;
+    box-sizing: border-box !important;
+}
+
+/* Ensure all Streamlit input widgets have proper padding */
+div[data-baseweb="input"] > input {
+    padding: 12px !important;
+    min-height: 42px !important;
+    line-height: 1.5 !important;
+}
+
+/* Style for date input fields */
+.stDateInput input {
+    padding: 12px !important;
+    min-height: 42px !important;
+    line-height: 1.5 !important;
+}
+
+/* Style for time input fields */
+.stTimeInput input {
+    padding: 12px !important;
+    min-height: 42px !important;
+    line-height: 1.5 !important;
+}
 </style>
 """, unsafe_allow_html=True)
 # Add JavaScript error handling for Render deployment issues
@@ -653,6 +720,80 @@ def perform_global_search(search_term):
         results.sort(key=lambda x: (-x['match_count'], x['sheet']))
         
         return results
+
+def get_client_data_by_number(client_number, username):
+    """
+    Fetch client data from Client sheet based on client number (No field)
+    Returns a dictionary with column names as keys and values from that client row
+    """
+    try:
+        # Load Client sheet data for the current user
+        data, columns = data_manager.load_user_data(username, "Client")
+        
+        if not data or not columns:
+            return {}
+        
+        # Convert to DataFrame for easier searching
+        df = pd.DataFrame(data, columns=columns)
+        
+        # Find the row where "No" matches the client_number
+        if "No" in df.columns:
+            # Convert both to string for comparison to handle different data types
+            matching_rows = df[df["No"].astype(str) == str(client_number)]
+            
+            if not matching_rows.empty:
+                # Get the first matching row as a dictionary
+                client_data = matching_rows.iloc[0].to_dict()
+                return client_data
+        
+        return {}
+    
+    except Exception as e:
+        st.error(f"Error fetching client data: {str(e)}")
+        return {}
+
+def auto_fill_from_client(client_number, target_sheet, username):
+    """
+    Auto-fill duplicate columns in target sheet based on Client sheet data
+    Returns a dictionary of field_name: value pairs to auto-fill
+    """
+    # Get client data
+    client_data = get_client_data_by_number(client_number, username)
+    
+    if not client_data:
+        return {}
+    
+    # Define mapping of duplicate columns for each sheet
+    duplicate_mappings = {
+        "Business Contact Information": [
+            "Region", "Province", "City/Municipality", "Barangay", "District",
+            "Zip Code", "Address", "Landline Number", "Fax Number", "Mobile Number",
+            "Email Address", "Social Media", "Website", "E-Commerce Platform"
+        ],
+        "Business Owner": [
+            "Region", "Province", "City/Municipality", "Barangay", "District",
+            "Address", "Social Classification", "Diff/Abled type", "Citizenship",
+            "Civil Status", "Sex", "Birthdate (MM/DD/YYYY)", "Birth Year",
+            "Middle Name", "Last Name", "Suffix"
+        ],
+        "Market Domestic": [
+            "Region", "Province"
+        ]
+    }
+    
+    # Get the columns that should be auto-filled for this sheet
+    columns_to_fill = duplicate_mappings.get(target_sheet, [])
+    
+    # Build the auto-fill dictionary
+    auto_fill_data = {}
+    for column in columns_to_fill:
+        # Handle slight spelling variations
+        if column == "Diff/Abled type" and "Diff/Abled Type" in client_data:
+            auto_fill_data[column] = client_data["Diff/Abled Type"]
+        elif column in client_data:
+            auto_fill_data[column] = client_data[column]
+    
+    return auto_fill_data
 
 def show():    
         # Get authentication info at the start
@@ -2747,10 +2888,46 @@ def show():
                     
                     # Business Owner form with validation
                     st.markdown(f"### Add Entry to {selected}")
+                    
+                    # Get current username
+                    auth_cookie = st.session_state.get("auth_cookie", {})
+                    username = auth_cookie.get("username", "anonymous")
+                    
+                    # Auto-fill from Client sheet section
+                    st.markdown("#### Auto-fill from Client Sheet")
+                    col1, col2 = st.columns([2, 3])
+                    with col1:
+                        client_number_input = st.text_input(
+                            "Enter Client Number:",
+                            key=f"bo_client_number_{st.session_state.get('bo_form_counter', 0)}",
+                            help="Enter the client number to auto-fill data from Client sheet"
+                        )
+                    
+                    auto_filled_data = {}
+                    auto_fill_client_number = None
+                    with col2:
+                        # Add spacing to align button with text input
+                        st.markdown("<br>", unsafe_allow_html=True)
+                        if st.button("Auto-fill Data", key=f"bo_autofill_btn_{st.session_state.get('bo_form_counter', 0)}", use_container_width=True):
+                            if client_number_input:
+                                auto_filled_data = auto_fill_from_client(client_number_input, selected, username)
+                                if auto_filled_data:
+                                    auto_fill_client_number = client_number_input
+                                    st.success(f"Auto-filled {len([v for v in auto_filled_data.values() if v])} fields from Client #{client_number_input}")
+                                    st.info(f"This entry will be saved as No. {client_number_input} to maintain linkage across all sheets")
+                                else:
+                                    st.warning(f"No client found with number {client_number_input}")
+                            else:
+                                st.warning("Please enter a client number first")
+                    
+                    st.markdown("---")
                     st.markdown("**Fields marked with * are required**")
                     
                     new_entry = {}
                     validation_errors = []
+                    
+                    # Add No (Client Number) to the entry
+                    new_entry["No"] = client_number_input if client_number_input else ""
                     
                     # Define required fields (marked with ; in your specification)
                     required_fields = [
@@ -2792,103 +2969,126 @@ def show():
                     ]
                     citizenships = [""] + sorted(citizenships)  # Add empty option at beginning
                     
-                    # Row 1: Given Name (Required), Middle Name (Optional), Last Name (Required)
+                    # Row 1: Given Name (Required), Middle Name (Optional), Last Name (Required) - with auto-fill
                     col1, col2, col3 = st.columns(3)
                     with col1:
-                        # Given Name with red asterisk
-                        st.markdown('<label style="color: black;">Given Name <span style="color: red;">*</span></label>', unsafe_allow_html=True)
+                        # Use First Name from Client sheet for Given Name
+                        default_given = str(auto_filled_data.get("First Name", "")) if pd.notna(auto_filled_data.get("First Name")) else ""
+                        st.markdown('<label style="color: black;">Given Name' + (' - Auto-filled' if default_given else '') + ' <span style="color: red;">*</span></label>', unsafe_allow_html=True)
                         new_entry["Given Name"] = st.text_input(
                             "Given Name *",
+                            value=default_given,
                             key=f"bo_given_name_{st.session_state.get('bo_form_counter', 0)}",
                             label_visibility="collapsed"
                         )
                     with col2:
-                        st.markdown('<label style="color: black;">Middle Name (Optional)</label>', unsafe_allow_html=True)
+                        default_middle = str(auto_filled_data.get("Middle Name", "")) if pd.notna(auto_filled_data.get("Middle Name")) else ""
+                        st.markdown('<label style="color: black;">Middle Name (Optional)' + (' - Auto-filled' if default_middle else '') + '</label>', unsafe_allow_html=True)
                         new_entry["Middle Name"] = st.text_input(
                             "Middle Name (Optional)",
+                            value=default_middle,
                             key=f"bo_middle_name_{st.session_state.get('bo_form_counter', 0)}",
                             label_visibility="collapsed"
                         )
                     with col3:
-                        # Last Name with red asterisk
-                        st.markdown('<label style="color: black;">Last Name <span style="color: red;">*</span></label>', unsafe_allow_html=True)
+                        default_last = str(auto_filled_data.get("Last Name", "")) if pd.notna(auto_filled_data.get("Last Name")) else ""
+                        st.markdown('<label style="color: black;">Last Name' + (' - Auto-filled' if default_last else '') + ' <span style="color: red;">*</span></label>', unsafe_allow_html=True)
                         new_entry["Last Name"] = st.text_input(
                             "Last Name *",
+                            value=default_last,
                             key=f"bo_last_name_{st.session_state.get('bo_form_counter', 0)}",
                             label_visibility="collapsed"
                         )
                     
-                    # Row 2: Suffix (Optional), Civil Status (Required), Sex (Required)
+                    # Row 2: Suffix (Optional), Civil Status (Required), Sex (Required) - with auto-fill
                     col1, col2, col3 = st.columns(3)
                     with col1:
-                        st.markdown('<label style="color: black;">Suffix (Optional)</label>', unsafe_allow_html=True)
+                        default_suffix = str(auto_filled_data.get("Suffix", "")) if pd.notna(auto_filled_data.get("Suffix")) else ""
+                        st.markdown('<label style="color: black;">Suffix (Optional)' + (' - Auto-filled' if default_suffix else '') + '</label>', unsafe_allow_html=True)
                         new_entry["Suffix"] = st.text_input(
                             "Suffix (Optional)",
+                            value=default_suffix,
                             key=f"bo_suffix_{st.session_state.get('bo_form_counter', 0)}",
                             label_visibility="collapsed"
                         )
                     with col2:
-                        # Civil Status with red asterisk
-                        st.markdown('<label style="color: black;">Civil Status <span style="color: red;">*</span></label>', unsafe_allow_html=True)
+                        st.markdown('<label style="color: black;">Civil Status' + (' - Auto-filled' if auto_filled_data.get("Civil Status") else '') + ' <span style="color: red;">*</span></label>', unsafe_allow_html=True)
+                        civil_options = ["", "Single", "Married", "Divorced", "Widowed", "Separated"]
+                        default_civil = auto_filled_data.get("Civil Status", "")
+                        default_civil_index = civil_options.index(default_civil) if default_civil in civil_options else 0
                         new_entry["Civil Status"] = st.selectbox(
                             "Civil Status *",
-                            options=["", "Single", "Married", "Divorced", "Widowed", "Separated"],
+                            options=civil_options,
+                            index=default_civil_index,
                             key=f"bo_civil_status_{st.session_state.get('bo_form_counter', 0)}",
                             label_visibility="collapsed"
                         )
                     with col3:
-                        # Sex with red asterisk
-                        st.markdown('<label style="color: black;">Sex <span style="color: red;">*</span></label>', unsafe_allow_html=True)
+                        st.markdown('<label style="color: black;">Sex' + (' - Auto-filled' if auto_filled_data.get("Sex") else '') + ' <span style="color: red;">*</span></label>', unsafe_allow_html=True)
                         sex_options = ["", "Male", "Female"]
+                        default_sex = auto_filled_data.get("Sex", "")
+                        default_sex_index = sex_options.index(default_sex) if default_sex in sex_options else 0
                         new_entry["Sex"] = st.selectbox(
                             "Sex *",
                             sex_options,
+                            index=default_sex_index,
                             key=f"bo_sex_{st.session_state.get('bo_form_counter', 0)}",
                             label_visibility="collapsed"
                         )
                     
-                    # Row 3: Birthdate (Optional), Birth Year (Optional), Citizenship (Required)
+                    # Row 3: Birthdate (Optional), Birth Year (Optional), Citizenship (Required) - with auto-fill
                     col1, col2, col3 = st.columns(3)
                     with col1:
+                        # Note: Date inputs with auto-fill reference
+                        if auto_filled_data.get("Birthdate (MM/DD/YYYY)"):
+                            st.info(f"Auto-filled: {auto_filled_data.get('Birthdate (MM/DD/YYYY)')}")
                         birthdate = st.date_input(
                             "Birthdate (Optional)",
                             value=None,
                             key=f"bo_birthdate_{st.session_state.get('bo_form_counter', 0)}"
                         )
-                        new_entry["Birthdate (MM/DD/YYYY)"] = birthdate.strftime("%m/%d/%Y") if birthdate else ""
+                        new_entry["Birthdate (MM/DD/YYYY)"] = birthdate.strftime("%m/%d/%Y") if birthdate else auto_filled_data.get("Birthdate (MM/DD/YYYY)", "")
                     with col2:
-                        st.markdown('<label style="color: black;">Birth Year (Optional)</label>', unsafe_allow_html=True)
+                        default_birth_year = str(auto_filled_data.get("Birth Year", "")) if pd.notna(auto_filled_data.get("Birth Year")) else ""
+                        st.markdown('<label style="color: black;">Birth Year (Optional)' + (' - Auto-filled' if default_birth_year else '') + '</label>', unsafe_allow_html=True)
                         new_entry["Birth Year"] = st.text_input(
                             "Birth Year (Optional)",
+                            value=default_birth_year,
                             key=f"bo_birth_year_{st.session_state.get('bo_form_counter', 0)}",
                             label_visibility="collapsed"
                         )
                     with col3:
-                        # Citizenship with red asterisk
-                        st.markdown('<label style="color: black;">Citizenship <span style="color: red;">*</span></label>', unsafe_allow_html=True)
+                        st.markdown('<label style="color: black;">Citizenship' + (' - Auto-filled' if auto_filled_data.get("Citizenship") else '') + ' <span style="color: red;">*</span></label>', unsafe_allow_html=True)
+                        default_citizenship = auto_filled_data.get("Citizenship", "")
+                        default_citizenship_index = citizenships.index(default_citizenship) if default_citizenship in citizenships else 0
                         new_entry["Citizenship"] = st.selectbox(
                             "Citizenship *",
                             citizenships,
+                            index=default_citizenship_index,
                             key=f"bo_citizenship_{st.session_state.get('bo_form_counter', 0)}",
                             label_visibility="collapsed"
                         )
                     
-                    # Row 4: Social Classification (Required), Diff/Abled Type (Optional), Owner is Senior (Required)
+                    # Row 4: Social Classification (Required), Diff/Abled Type (Optional), Owner is Senior (Required) - with auto-fill
                     col1, col2, col3 = st.columns(3)
                     with col1:
-                        # Social Classification with red asterisk
-                        st.markdown('<label style="color: black;">Social Classification <span style="color: red;">*</span></label>', unsafe_allow_html=True)
+                        st.markdown('<label style="color: black;">Social Classification' + (' - Auto-filled' if auto_filled_data.get("Social Classification") else '') + ' <span style="color: red;">*</span></label>', unsafe_allow_html=True)
                         social_options = ["", "Abled", "Person with Disabilities"]
+                        default_social = auto_filled_data.get("Social Classification", "")
+                        default_social_index = social_options.index(default_social) if default_social in social_options else 0
                         new_entry["Social Classification"] = st.selectbox(
                             "Social Classification *",
                             social_options,
+                            index=default_social_index,
                             key=f"bo_social_class_{st.session_state.get('bo_form_counter', 0)}",
                             label_visibility="collapsed"
                         )
                     with col2:
-                        st.markdown('<label style="color: black;">Diff/Abled Type (Optional)</label>', unsafe_allow_html=True)
+                        default_disabled = str(auto_filled_data.get("Diff/Abled Type", "")) if pd.notna(auto_filled_data.get("Diff/Abled Type")) else ""
+                        st.markdown('<label style="color: black;">Diff/Abled Type (Optional)' + (' - Auto-filled' if default_disabled else '') + '</label>', unsafe_allow_html=True)
                         new_entry["Diff/Abled type"] = st.text_input(
                             "Diff/Abled Type (Optional)",
+                            value=default_disabled,
                             key=f"bo_disabled_type_{st.session_state.get('bo_form_counter', 0)}",
                             label_visibility="collapsed"
                         )
@@ -2922,6 +3122,19 @@ def show():
                     
                     # Location Information Section
                     st.markdown("#### Location Information")
+                    
+                    # Show auto-filled location data if available
+                    if auto_filled_data:
+                        location_fields = ["Region", "Province", "City/Municipality", "Barangay"]
+                        has_location_data = any(auto_filled_data.get(field) for field in location_fields)
+                        
+                        if has_location_data:
+                            st.info("Auto-filled location data from Client sheet - Please verify and select from dropdowns below:")
+                            cols = st.columns(4)
+                            for idx, field in enumerate(location_fields):
+                                if auto_filled_data.get(field):
+                                    cols[idx].write(f"**{field}:** {auto_filled_data.get(field)}")
+                    
                     location_data = create_location_widgets()
                     new_entry["Region"] = location_data["region"]
                     new_entry["Province"] = location_data["province"]
@@ -2931,21 +3144,23 @@ def show():
                     # Address Information Section
                     st.markdown("#### Address Information")
                     
-                    # Row 6: District (Required), Address (Required)
+                    # Row 6: District (Required), Address (Required) - with auto-fill
                     col1, col2, col3 = st.columns(3)
                     with col1:
-                        # District with red asterisk
-                        st.markdown('<label style="color: black;">District <span style="color: red;">*</span></label>', unsafe_allow_html=True)
+                        default_district = str(auto_filled_data.get("District", "")) if pd.notna(auto_filled_data.get("District")) else ""
+                        st.markdown('<label style="color: black;">District' + (' - Auto-filled' if default_district else '') + ' <span style="color: red;">*</span></label>', unsafe_allow_html=True)
                         new_entry["District"] = st.text_input(
                             "District *",
+                            value=default_district,
                             key=f"bo_district_{st.session_state.get('bo_form_counter', 0)}",
                             label_visibility="collapsed"
                         )
                     with col2:
-                        # Address with red asterisk
-                        st.markdown('<label style="color: black;">Address <span style="color: red;">*</span></label>', unsafe_allow_html=True)
+                        default_address = str(auto_filled_data.get("Address", "")) if pd.notna(auto_filled_data.get("Address")) else ""
+                        st.markdown('<label style="color: black;">Address' + (' - Auto-filled' if default_address else '') + ' <span style="color: red;">*</span></label>', unsafe_allow_html=True)
                         new_entry["Address"] = st.text_input(
                             "Address *",
+                            value=default_address,
                             key=f"bo_address_{st.session_state.get('bo_form_counter', 0)}",
                             label_visibility="collapsed"
                         )
@@ -2967,9 +3182,15 @@ def show():
                             for field in validation_errors:
                                 st.error(f"• {field}")
                         else:
-                            # Auto-increment 'No' and ensure order
+                            # Use auto-filled client number if available, otherwise auto-increment
                             data = st.session_state[table_key]
-                            next_no = len(data) + 1
+                            if auto_fill_client_number:
+                                # Use the client number from auto-fill to maintain linkage
+                                next_no = auto_fill_client_number
+                            else:
+                                # Auto-increment if no auto-fill was used
+                                next_no = len(data) + 1
+                            
                             row = [str(next_no)]
                             for col in columns[1:]:
                                 row.append(new_entry.get(col, ""))
@@ -2977,7 +3198,10 @@ def show():
                             st.session_state[table_key] = data
                             save_current_data(selected)
                             
-                            st.success("Business Owner saved successfully!")
+                            if auto_fill_client_number:
+                                st.success(f"Business Owner saved successfully as No. {next_no} (linked to Client #{auto_fill_client_number})!")
+                            else:
+                                st.success("Business Owner saved successfully!")
                             
                             # Clear form fields by incrementing counter
                             if 'bo_form_counter' not in st.session_state:
@@ -3735,6 +3959,39 @@ def show():
                 elif selected == "Business Contact Information":
                     st.markdown(f"### Add Entry to {selected}")
                     
+                    # Get current username
+                    auth_cookie = st.session_state.get("auth_cookie", {})
+                    username = auth_cookie.get("username", "anonymous")
+                    
+                    # Auto-fill from Client sheet section
+                    st.markdown("#### Auto-fill from Client Sheet")
+                    col1, col2 = st.columns([2, 3])
+                    with col1:
+                        client_number_input = st.text_input(
+                            "Enter Client Number:",
+                            key=f"bci_client_number_{st.session_state.get('bci_form_counter', 0)}",
+                            help="Enter the client number to auto-fill data from Client sheet"
+                        )
+                    
+                    auto_filled_data = {}
+                    auto_fill_client_number = None
+                    with col2:
+                        # Add spacing to align button with text input
+                        st.markdown("<br>", unsafe_allow_html=True)
+                        if st.button("Auto-fill Data", key=f"bci_autofill_btn_{st.session_state.get('bci_form_counter', 0)}", use_container_width=True):
+                            if client_number_input:
+                                auto_filled_data = auto_fill_from_client(client_number_input, selected, username)
+                                if auto_filled_data:
+                                    auto_fill_client_number = client_number_input
+                                    st.success(f"Auto-filled {len([v for v in auto_filled_data.values() if v])} fields from Client #{client_number_input}")
+                                    st.info(f"This entry will be saved as No. {client_number_input} to maintain linkage across all sheets")
+                                else:
+                                    st.warning(f"No client found with number {client_number_input}")
+                            else:
+                                st.warning("Please enter a client number first")
+                    
+                    st.markdown("---")
+                    
                     # Initialize required fields and validation
                     required_fields = [
                         "Status of Business Registration",
@@ -3746,6 +4003,9 @@ def show():
                     ]
                     validation_errors = []
                     new_entry = {}
+                    
+                    # Add No (Client Number) to the entry
+                    new_entry["No"] = client_number_input if client_number_input else ""
                     
                     # Row 1: Status of Business Registration, Registered Business, Date Registered
                     col1, col2, col3 = st.columns(3)
@@ -3797,34 +4057,51 @@ def show():
                     
                     # Location Information using create_location_widgets
                     st.markdown("#### Location Information")
+                    
+                    # Show auto-filled location data if available
+                    if auto_filled_data:
+                        location_fields = ["Region", "Province", "City/Municipality", "Barangay"]
+                        has_location_data = any(auto_filled_data.get(field) for field in location_fields)
+                        
+                        if has_location_data:
+                            st.info("Auto-filled location data from Client sheet - Please verify and select from dropdowns below:")
+                            cols = st.columns(4)
+                            for idx, field in enumerate(location_fields):
+                                if auto_filled_data.get(field):
+                                    cols[idx].write(f"**{field}:** {auto_filled_data.get(field)}")
+                    
                     location_data = create_location_widgets()
                     new_entry["Region"] = location_data["region"]
                     new_entry["Province"] = location_data["province"]
                     new_entry["City/Municipality"] = location_data["city"]
                     new_entry["Barangay"] = location_data["barangay"]
                     
-                    # Row 3: District, Zip Code, Address
+                    # Row 3: District, Zip Code, Address (with auto-fill)
                     col1, col2, col3 = st.columns(3)
                     with col1:
-                        # District with red asterisk
-                        st.markdown('<label style="color: black;">District <span style="color: red;">*</span></label>', unsafe_allow_html=True)
+                        st.markdown('<label style="color: black;">District (Auto-filled) <span style="color: red;">*</span></label>', unsafe_allow_html=True) if auto_filled_data.get("District") else st.markdown('<label style="color: black;">District <span style="color: red;">*</span></label>', unsafe_allow_html=True)
                         new_entry["District"] = st.text_input(
                             "District *",
+                            value=str(auto_filled_data.get("District", "")) if pd.notna(auto_filled_data.get("District")) else "",
                             key=f"bci_district_{st.session_state.get('bci_form_counter', 0)}",
                             label_visibility="collapsed"
                         )
                     with col2:
+                        default_zip = str(auto_filled_data.get("Zip Code", "")) if pd.notna(auto_filled_data.get("Zip Code")) else ""
                         new_entry["Zip Code"] = st.text_input(
-                            "Zip Code (Optional)",
+                            "Zip Code (Optional)" + (" - Auto-filled" if default_zip else ""),
+                            value=default_zip,
                             key=f"bci_zip_code_{st.session_state.get('bci_form_counter', 0)}"
                         )
                     with col3:
+                        default_address = str(auto_filled_data.get("Address", "")) if pd.notna(auto_filled_data.get("Address")) else ""
                         new_entry["Address"] = st.text_input(
-                            "Address (Optional)",
+                            "Address (Optional)" + (" - Auto-filled" if default_address else ""),
+                            value=default_address,
                             key=f"bci_address_{st.session_state.get('bci_form_counter', 0)}"
                         )
                     
-                    # Row 4: Latitude, Longitude, Landline Number
+                    # Row 4: Latitude, Longitude, Landline Number (with auto-fill for Landline)
                     col1, col2, col3 = st.columns(3)
                     with col1:
                         new_entry["Latitude"] = st.text_input(
@@ -3837,50 +4114,64 @@ def show():
                             key=f"bci_longitude_{st.session_state.get('bci_form_counter', 0)}"
                         )
                     with col3:
+                        default_landline = str(auto_filled_data.get("Landline Number", "")) if pd.notna(auto_filled_data.get("Landline Number")) else ""
                         new_entry["Landline Number"] = st.text_input(
-                            "Landline Number (Optional)",
+                            "Landline Number (Optional)" + (" - Auto-filled" if default_landline else ""),
+                            value=default_landline,
                             key=f"bci_landline_{st.session_state.get('bci_form_counter', 0)}"
                         )
                     
-                    # Row 5: Fax Number, Mobile Number, Email Address
+                    # Row 5: Fax Number, Mobile Number, Email Address (with auto-fill)
                     col1, col2, col3 = st.columns(3)
                     with col1:
-                        st.markdown('<label style="font-size: 14px; font-weight: 400; color: rgb(38, 39, 48);">Fax Number (Optional)</label>', unsafe_allow_html=True)
+                        st.markdown('<label style="font-size: 14px; font-weight: 400; color: rgb(38, 39, 48);">Fax Number (Optional)' + (' - Auto-filled' if auto_filled_data.get("Fax Number") else '') + '</label>', unsafe_allow_html=True)
+                        default_fax = str(auto_filled_data.get("Fax Number", "")) if pd.notna(auto_filled_data.get("Fax Number")) else ""
                         new_entry["Fax Number"] = st.text_input(
                             "Fax Number",
+                            value=default_fax,
                             key=f"bci_fax_{st.session_state.get('bci_form_counter', 0)}",
                             label_visibility="collapsed"
                         )
                     with col2:
-                        st.markdown('<label style="font-size: 14px; font-weight: 400; color: rgb(38, 39, 48);">Mobile Number <span style="color: #ff0000; font-weight: bold;">*</span></label>', unsafe_allow_html=True)
+                        st.markdown('<label style="font-size: 14px; font-weight: 400; color: rgb(38, 39, 48);">Mobile Number' + (' - Auto-filled' if auto_filled_data.get("Mobile Number") else '') + ' <span style="color: #ff0000; font-weight: bold;">*</span></label>', unsafe_allow_html=True)
+                        default_mobile = str(auto_filled_data.get("Mobile Number", "")) if pd.notna(auto_filled_data.get("Mobile Number")) else ""
                         new_entry["Mobile Number"] = st.text_input(
                             "Mobile Number",
+                            value=default_mobile,
                             key=f"bci_mobile_{st.session_state.get('bci_form_counter', 0)}",
                             label_visibility="collapsed"
                         )
                     with col3:
-                        st.markdown('<label style="font-size: 14px; font-weight: 400; color: rgb(38, 39, 48);">Email Address (Optional)</label>', unsafe_allow_html=True)
+                        st.markdown('<label style="font-size: 14px; font-weight: 400; color: rgb(38, 39, 48);">Email Address (Optional)' + (' - Auto-filled' if auto_filled_data.get("Email Address") else '') + '</label>', unsafe_allow_html=True)
+                        default_email = str(auto_filled_data.get("Email Address", "")) if pd.notna(auto_filled_data.get("Email Address")) else ""
                         new_entry["Email Address"] = st.text_input(
                             "Email Address",
+                            value=default_email,
                             key=f"bci_email_{st.session_state.get('bci_form_counter', 0)}",
                             label_visibility="collapsed"
                         )
                     
-                    # Row 6: E-Commerce Platform, Social Media, Website
+                    # Row 6: E-Commerce Platform, Social Media, Website (with auto-fill)
                     col1, col2, col3 = st.columns(3)
                     with col1:
+                        default_ecommerce = str(auto_filled_data.get("E-Commerce Platform", "")) if pd.notna(auto_filled_data.get("E-Commerce Platform")) else ""
                         new_entry["E-Commerce Platform"] = st.text_input(
-                            "E-Commerce Platform (Optional)",
+                            "E-Commerce Platform (Optional)" + (" - Auto-filled" if default_ecommerce else ""),
+                            value=default_ecommerce,
                             key=f"bci_ecommerce_{st.session_state.get('bci_form_counter', 0)}"
                         )
                     with col2:
+                        default_social = str(auto_filled_data.get("Social Media", "")) if pd.notna(auto_filled_data.get("Social Media")) else ""
                         new_entry["Social Media"] = st.text_input(
-                            "Social Media (Optional)",
+                            "Social Media (Optional)" + (" - Auto-filled" if default_social else ""),
+                            value=default_social,
                             key=f"bci_social_media_{st.session_state.get('bci_form_counter', 0)}"
                         )
                     with col3:
+                        default_website = str(auto_filled_data.get("Website", "")) if pd.notna(auto_filled_data.get("Website")) else ""
                         new_entry["Website"] = st.text_input(
-                            "Website (Optional)",
+                            "Website (Optional)" + (" - Auto-filled" if default_website else ""),
+                            value=default_website,
                             key=f"bci_website_{st.session_state.get('bci_form_counter', 0)}"
                         )
                     
@@ -3908,9 +4199,15 @@ def show():
                         if validation_errors:
                             st.error("Please fill in all required fields before submitting.")
                         else:
-                            # Auto-increment 'No' and ensure order
+                            # Use auto-filled client number if available, otherwise auto-increment
                             data = st.session_state[table_key]
-                            next_no = len(data) + 1
+                            if auto_fill_client_number:
+                                # Use the client number from auto-fill to maintain linkage
+                                next_no = auto_fill_client_number
+                            else:
+                                # Auto-increment if no auto-fill was used
+                                next_no = len(data) + 1
+                            
                             row = [str(next_no)]
                             for col in columns[1:]:
                                 row.append(new_entry.get(col, ""))
@@ -3918,7 +4215,10 @@ def show():
                             st.session_state[table_key] = data
                             save_current_data(selected)
                             
-                            st.success("Business Contact Information saved successfully!")
+                            if auto_fill_client_number:
+                                st.success(f"Business Contact Information saved successfully as No. {next_no} (linked to Client #{auto_fill_client_number})!")
+                            else:
+                                st.success("Business Contact Information saved successfully!")
                             
                             # Clear form fields by incrementing counter
                             if 'bci_form_counter' not in st.session_state:
@@ -4257,6 +4557,35 @@ def show():
                 elif selected == "Market Domestic":
                     st.markdown(f"### Add Entry to {selected}")
                     
+                    # Auto-fill from Client sheet section
+                    st.markdown("#### Auto-fill from Client Sheet")
+                    col1, col2 = st.columns([2, 3])
+                    with col1:
+                        client_number_input = st.text_input(
+                            "Enter Client Number:",
+                            key=f"md_client_number_{st.session_state.get('md_form_counter', 0)}",
+                            help="Enter the client number to auto-fill data from Client sheet"
+                        )
+                    
+                    auto_filled_data = {}
+                    auto_fill_client_number = None
+                    with col2:
+                        # Add spacing to align button with text input
+                        st.markdown("<br>", unsafe_allow_html=True)
+                        if st.button("Auto-fill Data", key=f"md_autofill_btn_{st.session_state.get('md_form_counter', 0)}", use_container_width=True):
+                            if client_number_input:
+                                auto_filled_data = auto_fill_from_client(client_number_input, selected, username)
+                                if auto_filled_data:
+                                    auto_fill_client_number = client_number_input
+                                    st.success(f"Auto-filled {len([v for v in auto_filled_data.values() if v])} fields from Client #{client_number_input}")
+                                    st.info(f"This entry will be saved as No. {client_number_input} to maintain linkage across all sheets")
+                                else:
+                                    st.warning(f"No client found with number {client_number_input}")
+                            else:
+                                st.warning("Please enter a client number first")
+                    
+                    st.markdown("---")
+                    
                     # Initialize required fields and validation
                     required_fields = [
                         "Product/Service",
@@ -4278,6 +4607,19 @@ def show():
                     
                     # Location Information using create_location_widgets
                     st.markdown("#### Location Information")
+                    
+                    # Show auto-filled location data if available
+                    if auto_filled_data:
+                        location_fields = ["Region", "Province"]
+                        has_location_data = any(auto_filled_data.get(field) for field in location_fields)
+                        
+                        if has_location_data:
+                            st.info("Auto-filled location data from Client sheet - Please verify and select from dropdowns below:")
+                            cols = st.columns(2)
+                            for idx, field in enumerate(location_fields):
+                                if auto_filled_data.get(field):
+                                    cols[idx].write(f"**{field}:** {auto_filled_data.get(field)}")
+                    
                     location_data = create_location_widgets()
                     new_entry["Region"] = location_data["region"]
                     new_entry["Province"] = location_data["province"]
@@ -4302,9 +4644,15 @@ def show():
                             for field in validation_errors:
                                 st.error(f"Missing: {field}")
                         else:
-                            # Auto-increment 'No' and ensure order
+                            # Use auto-filled client number if available, otherwise auto-increment
                             data = st.session_state[table_key]
-                            next_no = len(data) + 1
+                            if auto_fill_client_number:
+                                # Use the client number from auto-fill to maintain linkage
+                                next_no = auto_fill_client_number
+                            else:
+                                # Auto-increment if no auto-fill was used
+                                next_no = len(data) + 1
+                            
                             row = [str(next_no)]
                             for col in columns[1:]:
                                 row.append(new_entry.get(col, ""))
@@ -4312,7 +4660,10 @@ def show():
                             st.session_state[table_key] = data
                             save_current_data(selected)
                             
-                            st.success("Market Domestic saved successfully!")
+                            if auto_fill_client_number:
+                                st.success(f"Market Domestic saved successfully as No. {next_no} (linked to Client #{auto_fill_client_number})!")
+                            else:
+                                st.success("Market Domestic saved successfully!")
                             
                             # Clear form fields by incrementing counter
                             if 'md_form_counter' not in st.session_state:
